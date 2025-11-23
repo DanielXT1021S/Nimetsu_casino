@@ -1,0 +1,534 @@
+/* ============================================
+   HISTORY MODAL - Modal de historial de juegos
+   ============================================ */
+.history-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2500;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.history-modal.active {
+  display: flex;
+  opacity: 1;
+}
+
+.history-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+.history-modal-content {
+  position: relative;
+  background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header del modal */
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(167, 139, 250, 0.1));
+  border-bottom: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.history-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--primary-light);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.btn-close-history {
+  background: rgba(255, 118, 117, 0.2);
+  border: 2px solid rgba(255, 118, 117, 0.4);
+  color: var(--error-color);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all var(--transition-normal);
+}
+
+.btn-close-history:hover {
+  background: var(--error-color);
+  color: white;
+  transform: rotate(90deg);
+}
+
+/* Estadísticas resumen */
+.history-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background: rgba(108, 92, 231, 0.05);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.stat-summary:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.stat-summary .stat-icon {
+  font-size: 2rem;
+}
+
+.stat-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--primary-light);
+  line-height: 1;
+}
+
+.stat-number.positive {
+  color: var(--success-color);
+}
+
+.stat-number.negative {
+  color: var(--error-color);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Lista de historial */
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Item de historial */
+.history-item {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--spacing-lg);
+  align-items: center;
+  transition: all var(--transition-normal);
+}
+
+.history-item:hover {
+  border-color: var(--primary-color);
+  transform: translateX(5px);
+  box-shadow: var(--shadow-md);
+}
+
+.history-item.win {
+  border-left: 4px solid var(--success-color);
+}
+
+.history-item.loss {
+  border-left: 4px solid var(--error-color);
+}
+
+.history-item.tie {
+  border-left: 4px solid var(--warning-color);
+}
+
+/* Icono del juego */
+.history-game-icon {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(167, 139, 250, 0.1));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+/* Detalles del juego */
+.history-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.history-game-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.history-game-type {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.history-result-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-result-badge.win {
+  background: rgba(0, 184, 148, 0.2);
+  border: 1px solid var(--success-color);
+  color: var(--success-color);
+}
+
+.history-result-badge.loss {
+  background: rgba(255, 118, 117, 0.2);
+  border: 1px solid var(--error-color);
+  color: var(--error-color);
+}
+
+.history-result-badge.tie {
+  background: rgba(253, 203, 110, 0.2);
+  border: 1px solid var(--warning-color);
+  color: var(--warning-color);
+}
+
+.history-game-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.game-detail {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.game-detail i {
+  color: var(--primary-light);
+  font-size: 0.8rem;
+}
+
+.game-detail strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.history-date {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.history-date i {
+  font-size: 0.75rem;
+}
+
+/* Cantidades */
+.history-amounts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  align-items: flex-end;
+  min-width: 140px;
+}
+
+.history-bet-amount,
+.history-win-amount,
+.history-profit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.history-amounts .label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-amounts .amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.history-bet-amount .amount {
+  color: var(--text-secondary);
+}
+
+.history-win-amount .amount {
+  color: var(--accent-gold);
+}
+
+.history-profit {
+  padding-top: var(--spacing-xs);
+  border-top: 1px solid var(--border-color);
+  margin-top: var(--spacing-xs);
+}
+
+.history-profit.positive .amount {
+  color: var(--success-color);
+}
+
+.history-profit.negative .amount {
+  color: var(--error-color);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .history-modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .history-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .history-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .btn-close-history {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+
+  .history-stats {
+    grid-template-columns: repeat(2, 1fr);
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-sm);
+  }
+
+  .stat-summary {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .stat-summary .stat-icon {
+    font-size: 1.6rem;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .history-list {
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-sm);
+  }
+
+  .history-item {
+    grid-template-columns: auto 1fr;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .history-game-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.6rem;
+  }
+
+  .history-amounts {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--spacing-sm);
+    min-width: unset;
+    width: 100%;
+  }
+
+  .history-bet-amount,
+  .history-win-amount,
+  .history-profit {
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .history-profit {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .history-amounts .amount {
+    font-size: 0.9rem;
+  }
+
+  .history-game-type {
+    font-size: 1rem;
+  }
+
+  .history-result-badge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+
+  .game-detail {
+    font-size: 0.8rem;
+  }
+
+  .history-date {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-modal-content {
+    width: 98%;
+    max-height: 95vh;
+  }
+
+  .history-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .history-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .btn-close-history {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .history-stats {
+    grid-template-columns: 1fr;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .stat-summary {
+    padding: var(--spacing-xs);
+  }
+
+  .history-list {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .history-item {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .history-game-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.4rem;
+  }
+
+  .history-game-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .history-game-type {
+    font-size: 0.95rem;
+  }
+
+  .history-result-badge {
+    font-size: 0.65rem;
+    padding: 2px 8px;
+  }
+
+  .game-detail {
+    font-size: 0.75rem;
+  }
+
+  .history-amounts {
+    gap: var(--spacing-xs);
+  }
+
+  .history-amounts .label {
+    font-size: 0.65rem;
+  }
+
+  .history-amounts .amount {
+    font-size: 0.85rem;
+  }
+}

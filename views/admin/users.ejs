@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+  <div class="admin-container">
+    <%- include('../partials/admin-sidebar') %>
+
+    <main class="admin-content">
+      <%- include('../partials/admin-header', { pageTitle: 'Gestión de Usuarios' }) %>
+
+    <div class="content-wrapper">
+      <!-- Estadísticas de usuarios -->
+      <div class="stats-row">
+        <div class="stat-mini">
+          <span class="stat-value"><%= total %></span>
+          <span class="stat-label">Total Usuarios</span>
+        </div>
+        <div class="stat-mini">
+          <span class="stat-value"><%= users.filter(u => u.role === 'admin').length %></span>
+          <span class="stat-label">Administradores</span>
+        </div>
+        <div class="stat-mini">
+          <span class="stat-value"><%= users.filter(u => u.balance > 0).length %></span>
+          <span class="stat-label">Con Balance</span>
+        </div>
+      </div>
+
+      <!-- Tabla de usuarios -->
+      <div class="table-container">
+        <div class="table-header">
+          <h2>📋 Lista de Usuarios</h2>
+          <div class="search-box">
+            <input type="text" id="searchUser" placeholder="Buscar por nickname o email...">
+          </div>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nickname</th>
+              <th>Email</th>
+              <th>RUT</th>
+              <th>Balance</th>
+              <th>Rol</th>
+              <th>Registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach(user => { %>
+              <tr>
+                <td><strong>#<%= user.userId %></strong></td>
+                <td><%= user.nickname %></td>
+                <td><%= user.email %></td>
+                <td><%= user.rut || '-' %></td>
+                <td class="balance"><%= user.balance.toLocaleString('es-CL') %> 💰</td>
+                <td>
+                  <span class="role-badge <%= user.role %>">
+                    <%= user.role === 'admin' ? '👑 Admin' : user.role === 'superadmin' ? '⭐ Super' : '👤 User' %>
+                  </span>
+                </td>
+                <td><%= new Date(user.createdAt).toLocaleDateString('es-CL') %></td>
+                <td>
+                  <button class="btn-small btn-info" onclick="viewUser(<%= user.userId %>)">Ver</button>
+                  <button class="btn-small btn-primary" onclick="adjustBalance(<%= user.userId %>)">Balance</button>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination">
+          <% if (currentPage > 1) { %>
+            <a href="?page=<%= currentPage - 1 %>" class="btn-page">Anterior</a>
+          <% } %>
+          <span class="page-info">Página <%= currentPage %> de <%= totalPages %></span>
+          <% if (currentPage < totalPages) { %>
+            <a href="?page=<%= currentPage + 1 %>" class="btn-page">Siguiente</a>
+          <% } %>
+        </div>
+      </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-users.js"></script>
+</body>
+</html>

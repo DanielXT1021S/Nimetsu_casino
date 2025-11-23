@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Depositar Fondos - Casino NIMETSU</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Oxanium:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/recharge.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="navbar-logo">
+        <i class="fas fa-dice"></i> NIMETSU CASINO
+      </div>
+      <div class="navbar-actions">
+        <a href="/dashboard" class="btn-back">
+          <i class="fas fa-arrow-left"></i> Volver al Casino
+        </a>
+        <button id="accountBtn" class="btn-account">
+          <i class="fas fa-user-circle"></i>
+          <span id="userName">Usuario</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-container">
+    <!-- Sidebar Menu -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fas fa-money-check-alt"></i>
+        <h3>Métodos de Pago</h3>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <button class="sidebar-item active" data-section="deposit">
+          <i class="fas fa-credit-card"></i>
+          <div class="sidebar-item-content">
+            <span class="sidebar-item-title">Depositar</span>
+            <span class="sidebar-item-desc">MercadoPago</span>
+          </div>
+        </button>
+        
+        <button class="sidebar-item" data-section="withdraw-bank">
+          <i class="fas fa-university"></i>
+          <div class="sidebar-item-content">
+            <span class="sidebar-item-title">Retiro Bancario</span>
+            <span class="sidebar-item-desc">Transferencia</span>
+          </div>
+        </button>
+        
+        <button class="sidebar-item" data-section="withdraw-crypto">
+          <i class="fab fa-bitcoin"></i>
+          <div class="sidebar-item-content">
+            <span class="sidebar-item-title">Retiro Crypto</span>
+            <span class="sidebar-item-desc">Bitcoin, USDT</span>
+          </div>
+        </button>
+        
+        <button class="sidebar-item" data-section="history">
+          <i class="fas fa-history"></i>
+          <div class="sidebar-item-content">
+            <span class="sidebar-item-title">Historial</span>
+            <span class="sidebar-item-desc">Transacciones</span>
+          </div>
+        </button>
+      </nav>
+      
+      <!-- Balance Card in Sidebar -->
+      <div class="sidebar-balance">
+        <div class="sidebar-balance-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="sidebar-balance-info">
+          <span class="sidebar-balance-label">Saldo Disponible</span>
+          <span class="sidebar-balance-amount" id="balanceAmount">$0</span>
+        </div>
+        <button id="refreshBalanceBtn" class="sidebar-btn-refresh">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="content-wrapper">
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1 id="pageTitle"><i class="fas fa-plus-circle"></i> Depositar Fondos</h1>
+        <p id="pageDescription">Recarga tu saldo de forma rápida y segura con MercadoPago</p>
+      </div>
+
+      <!-- Deposit Section -->
+      <div class="content-section active" id="deposit-section">
+        <!-- Custom Amount -->
+        <div class="custom-amount-section">
+          <h2><i class="fas fa-edit"></i> Monto Personalizado</h2>
+          <p class="section-description">Ingresa el monto que deseas depositar (mínimo $500 CLP)</p>
+          
+          <div class="amount-input-wrapper">
+            <span class="currency-symbol">$</span>
+            <input 
+              type="number" 
+              id="customAmount" 
+              class="amount-input" 
+              placeholder="Ingresa el monto"
+              min="500"
+              step="100"
+            >
+            <span class="currency-label">CLP</span>
+          </div>
+          
+          <div class="amount-info">
+            <div class="info-item">
+              <i class="fas fa-info-circle"></i>
+              <span>Mínimo: $500 CLP</span>
+            </div>
+            <div class="info-item">
+              <i class="fas fa-coins"></i>
+              <span>Recibirás: <strong id="fichasReceived">0</strong> fichas</span>
+            </div>
+          </div>
+
+          <button id="btnDepositCustom" class="btn-primary btn-large">
+            <i class="fas fa-credit-card"></i> Depositar con MercadoPago
+          </button>
+        </div>
+
+        <!-- Quick Amounts -->
+        <div class="quick-amounts-section">
+          <h3><i class="fas fa-bolt"></i> Montos Rápidos</h3>
+          <div class="quick-amounts-grid">
+            <button class="quick-amount-btn" data-amount="1000">
+              <span class="amount">$1,000</span>
+              <span class="fichas">1,000 fichas</span>
+            </button>
+            <button class="quick-amount-btn" data-amount="5000">
+              <span class="amount">$5,000</span>
+              <span class="fichas">5,000 fichas</span>
+            </button>
+            <button class="quick-amount-btn" data-amount="10000">
+              <span class="amount">$10,000</span>
+              <span class="fichas">10,000 fichas</span>
+            </button>
+            <button class="quick-amount-btn" data-amount="20000">
+              <span class="amount">$20,000</span>
+              <span class="fichas">20,000 fichas</span>
+            </button>
+            <button class="quick-amount-btn" data-amount="50000">
+              <span class="amount">$50,000</span>
+              <span class="fichas">50,000 fichas</span>
+            </button>
+            <button class="quick-amount-btn" data-amount="100000">
+              <span class="amount">$100,000</span>
+              <span class="fichas">100,000 fichas</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bonus Packages -->
+        <div class="bonus-packages-section">
+          <h3><i class="fas fa-gift"></i> Paquetes con Bonus</h3>
+          <p class="section-description">¡Recibe fichas extra con estos paquetes especiales!</p>
+          
+          <div class="packages-grid" id="bonusPackages">
+            <!-- Se llenarán dinámicamente -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdraw Bank Section -->
+      <div class="content-section" id="withdraw-bank-section">
+        <div class="withdraw-container">
+          <div class="withdraw-header">
+            <div class="withdraw-icon">
+              <i class="fas fa-university"></i>
+            </div>
+            <div>
+              <h2>Retiro Bancario</h2>
+              <p class="section-description">Retira tu saldo a tu cuenta bancaria</p>
+            </div>
+          </div>
+
+          <!-- Bank Account Form -->
+          <div class="bank-form">
+            <div class="form-group">
+              <label><i class="fas fa-building"></i> Banco</label>
+              <select id="bankSelect" class="form-input">
+                <option value="">Selecciona tu banco</option>
+                <option value="banco-estado">Banco Estado</option>
+                <option value="banco-chile">Banco de Chile</option>
+                <option value="santander">Santander</option>
+                <option value="bci">BCI</option>
+                <option value="scotiabank">Scotiabank</option>
+                <option value="itau">Itaú</option>
+                <option value="falabella">Banco Falabella</option>
+                <option value="ripley">Banco Ripley</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-id-card"></i> RUT</label>
+                <input type="text" id="rutInput" class="form-input" placeholder="12.345.678-9">
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-credit-card"></i> Tipo de Cuenta</label>
+                <select id="accountTypeSelect" class="form-input">
+                  <option value="">Seleccionar</option>
+                  <option value="corriente">Cuenta Corriente</option>
+                  <option value="vista">Cuenta Vista</option>
+                  <option value="ahorro">Cuenta de Ahorro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-hashtag"></i> Número de Cuenta</label>
+              <input type="text" id="accountNumberInput" class="form-input" placeholder="Ingresa el número de cuenta">
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-dollar-sign"></i> Monto a Retirar</label>
+              <div class="amount-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input 
+                  type="number" 
+                  id="withdrawBankAmount" 
+                  class="amount-input" 
+                  placeholder="Mínimo $5,000"
+                  min="5000"
+                  step="1000"
+                >
+                <span class="currency-label">CLP</span>
+              </div>
+            </div>
+
+            <div class="withdraw-info">
+              <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                  <strong>Información importante:</strong>
+                  <ul>
+                    <li>Monto mínimo: $5,000 CLP</li>
+                    <li>Tiempo de procesamiento: 1-3 días hábiles</li>
+                    <li>Sin comisiones adicionales</li>
+                    <li>La cuenta debe estar a tu nombre</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <button id="btnWithdrawBank" class="btn-primary btn-large" disabled>
+              <i class="fas fa-paper-plane"></i> Solicitar Retiro Bancario
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdraw Crypto Section -->
+      <div class="content-section" id="withdraw-crypto-section">
+        <div class="withdraw-container">
+          <div class="withdraw-header">
+            <div class="withdraw-icon crypto">
+              <i class="fab fa-bitcoin"></i>
+            </div>
+            <div>
+              <h2>Retiro en Criptomonedas</h2>
+              <p class="section-description">Retira tu saldo en Bitcoin o USDT</p>
+            </div>
+          </div>
+
+          <!-- Crypto Form -->
+          <div class="crypto-form">
+            <div class="crypto-select">
+              <button class="crypto-option active" data-crypto="btc">
+                <i class="fab fa-bitcoin"></i>
+                <span>Bitcoin (BTC)</span>
+              </button>
+              <button class="crypto-option" data-crypto="usdt">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Tether (USDT)</span>
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-wallet"></i> Dirección de Wallet</label>
+              <input type="text" id="walletAddress" class="form-input" placeholder="Ingresa tu dirección de wallet">
+              <small class="form-hint">Verifica que la dirección sea correcta. Las transacciones no son reversibles.</small>
+            </div>
+
+            <div class="form-group">
+              <label><i class="fas fa-coins"></i> Monto a Retirar (Fichas)</label>
+              <div class="amount-input-wrapper">
+                <span class="currency-symbol">$</span>
+                <input 
+                  type="number" 
+                  id="withdrawCryptoAmount" 
+                  class="amount-input" 
+                  placeholder="Mínimo $10,000"
+                  min="10000"
+                  step="1000"
+                >
+                <span class="currency-label">Fichas</span>
+              </div>
+              <div class="crypto-conversion">
+                <span>≈ <span id="cryptoEquivalent">0.00</span> <span id="cryptoSymbol">BTC</span></span>
+              </div>
+            </div>
+
+            <div class="withdraw-info">
+              <div class="info-card warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                  <strong>Importante:</strong>
+                  <ul>
+                    <li>Monto mínimo: $10,000 fichas</li>
+                    <li>Tiempo de procesamiento: 24-48 horas</li>
+                    <li>Comisión de red variable según congestión</li>
+                    <li>Verifica la dirección antes de confirmar</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <button id="btnWithdrawCrypto" class="btn-crypto btn-large" disabled>
+              <i class="fas fa-lock"></i> Solicitar Retiro en Crypto
+            </button>
+          </div>
+
+          <div class="withdraw-note">
+            <i class="fas fa-info-circle"></i>
+            Función disponible próximamente
+          </div>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <div class="content-section" id="history-section">
+        <div class="history-container">
+          <div class="history-header">
+            <h2><i class="fas fa-history"></i> Historial de Transacciones</h2>
+            <div class="history-filters">
+              <button class="filter-btn active" data-filter="all">Todas</button>
+              <button class="filter-btn" data-filter="deposit">Depósitos</button>
+              <button class="filter-btn" data-filter="withdraw">Retiros</button>
+            </div>
+          </div>
+
+          <div class="transactions-list" id="transactionsList">
+            <div class="empty-state">
+              <i class="fas fa-inbox"></i>
+              <p>No hay transacciones aún</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Mensaje</span>
+  </div>
+
+  <script src="/js/recharge.js"></script>
+</body>
+</html>

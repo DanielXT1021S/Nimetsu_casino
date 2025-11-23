@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nimetsu Casino - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Global y Componentes -->
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components/navbar.css">
+  <link rel="stylesheet" href="/css/components/account-sidebar.css">
+  <link rel="stylesheet" href="/css/components/toast.css">
+  <link rel="stylesheet" href="/css/components/modal.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
+  <link rel="stylesheet" href="/css/components/history-modal.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+<%- include('partials/header') %>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Header -->
+    <header class="casino-header">
+      <div class="welcome-section">
+        <div class="welcome-content">
+          <div class="welcome-icon">
+            <i class="fas fa-dice-d20"></i>
+          </div>
+          <div class="welcome-text">
+            <h2 class="welcome-title">¡Bienvenido de vuelta!</h2>
+            <p class="welcome-subtitle">Elige tu juego favorito y comienza a ganar</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Games Grid -->
+    <section class="games-section">
+      <div class="section-header">
+        <h3 class="section-title">
+          <i class="fas fa-fire-alt"></i>
+          Juegos Populares
+        </h3>
+        <p class="section-description">Los mejores juegos de casino a tu alcance</p>
+      </div>
+      
+      <div class="games-grid">
+        
+        <!-- Juego 1: Slots -->
+        <div class="game-card" data-game="slots">
+          <div class="game-image-wrapper">
+            <img src="/images/games/slots.jpg" alt="Slots" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay">
+              <div class="game-badge">Popular</div>
+            </div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Slots</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.8</span>
+              </div>
+            </div>
+            <p class="game-description">Prueba suerte con las máquinas tragamonedas</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">96%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$1</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="slots">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Juego 2: Blackjack -->
+        <div class="game-card" data-game="blackjack">
+          <div class="game-image-wrapper">
+            <img src="/images/games/blackjack.jpg" alt="Blackjack" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay">
+              <div class="game-badge hot">Hot</div>
+            </div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Blackjack</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.9</span>
+              </div>
+            </div>
+            <p class="game-description">Juega contra el crupier y suma 21</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">99%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$5</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="blackjack">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Juego 3: Roulette -->
+        <div class="game-card" data-game="roulette">
+          <div class="game-image-wrapper">
+            <img src="/images/games/roulette.jpg" alt="Ruleta" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay">
+              <div class="game-badge new">Nuevo</div>
+            </div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Ruleta</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.7</span>
+              </div>
+            </div>
+            <p class="game-description">Apuesta en números, colores y más</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">97%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$1</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="roulette">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Juego 4: Poker -->
+        <div class="game-card" data-game="poker">
+          <div class="game-image-wrapper">
+            <img src="/images/games/poker.jpg" alt="Poker" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay"></div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Poker</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.8</span>
+              </div>
+            </div>
+            <p class="game-description">Forma la mejor mano de cartas</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">98%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$10</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="poker">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Juego 5: Dados -->
+        <div class="game-card" data-game="craps">
+          <div class="game-image-wrapper">
+            <img src="/images/games/craps.jpg" alt="Dados" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay"></div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Dados</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.6</span>
+              </div>
+            </div>
+            <p class="game-description">Lanza los dados y gana apostando</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">98%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$1</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="craps">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Juego 6: Baccarat -->
+        <div class="game-card" data-game="baccarat">
+          <div class="game-image-wrapper">
+            <img src="/images/games/baccarat.jpg" alt="Baccarat" class="game-image" onerror="this.src='/images/games/default.jpg'">
+            <div class="game-overlay"></div>
+          </div>
+          <div class="game-info">
+            <div class="game-header">
+              <h3 class="game-title">Baccarat</h3>
+              <div class="game-rating">
+                <i class="fas fa-star"></i>
+                <span>4.7</span>
+              </div>
+            </div>
+            <p class="game-description">Juego clásico de cartas elegante</p>
+            <div class="game-stats">
+              <div class="stat-item">
+                <i class="fas fa-percentage"></i>
+                <span class="stat-label">RTP</span>
+                <span class="stat-value">98%</span>
+              </div>
+              <div class="stat-item">
+                <i class="fas fa-coins"></i>
+                <span class="stat-label">Mín</span>
+                <span class="stat-value">$5</span>
+              </div>
+            </div>
+            <button class="btn-play" data-game="baccarat">
+              <i class="fas fa-play"></i>
+              <span>Jugar Ahora</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal para confirmación -->
+  <div class="modal" id="confirmModal">
+    <div class="modal-content">
+      <h3>Seleccionar Juego</h3>
+      <p id="modalMessage">¿Deseas jugar a <strong id="gameName"></strong>?</p>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="cancelBtn">Cancelar</button>
+        <button class="btn-confirm" id="confirmBtn">Jugar</button>
+      </div>
+    </div>
+  </div>
+
+<%- include('partials/account-sidebar') %>
+
+<%- include('partials/footer') %>
+
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

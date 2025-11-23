@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+  <div class="admin-container">
+    <%- include('../partials/admin-sidebar') %>
+
+    <main class="admin-content">
+      <%- include('../partials/admin-header', { pageTitle: 'Configuración del Sistema' }) %>
+
+      <div class="content-wrapper">
+        <div class="settings-sections">
+          <div class="settings-card">
+            <h3>⚙️ Configuración General</h3>
+            <form class="settings-form">
+              <div class="form-group">
+                <label>Nombre del Casino</label>
+                <input type="text" value="Nimetsu Casino" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>Moneda</label>
+                <select class="form-input">
+                  <option>CLP - Peso Chileno</option>
+                  <option>USD - Dólar</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Email de Soporte</label>
+                <input type="email" value="soporte@nimetsu.com" class="form-input">
+              </div>
+              <button type="button" class="btn-save" onclick="alert('Funcionalidad en desarrollo')">Guardar Cambios</button>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <h3>💰 Configuración de Transacciones</h3>
+            <form class="settings-form">
+              <div class="form-group">
+                <label>Depósito Mínimo (CLP)</label>
+                <input type="number" value="500" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>Retiro Mínimo (CLP)</label>
+                <input type="number" value="5000" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>Comisión de Retiro (%)</label>
+                <input type="number" value="0" step="0.1" class="form-input">
+              </div>
+              <button type="button" class="btn-save" onclick="alert('Funcionalidad en desarrollo')">Guardar Cambios</button>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <h3>🎮 Configuración de Juegos</h3>
+            <form class="settings-form">
+              <div class="form-group">
+                <label>Apuesta Mínima</label>
+                <input type="number" value="100" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>Apuesta Máxima</label>
+                <input type="number" value="100000" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" checked> Activar modo mantenimiento
+                </label>
+              </div>
+              <button type="button" class="btn-save" onclick="alert('Funcionalidad en desarrollo')">Guardar Cambios</button>
+            </form>
+          </div>
+
+          <div class="settings-card">
+            <h3>🔐 Seguridad</h3>
+            <form class="settings-form">
+              <div class="form-group">
+                <label>Sesiones Simultáneas Permitidas</label>
+                <input type="number" value="1" min="1" max="5" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>Tiempo de Sesión (minutos)</label>
+                <input type="number" value="60" class="form-input">
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" checked> Requiere verificación de email
+                </label>
+              </div>
+              <button type="button" class="btn-save" onclick="alert('Funcionalidad en desarrollo')">Guardar Cambios</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="danger-zone">
+          <h3>⚠️ Zona de Peligro</h3>
+          <p>Las siguientes acciones son irreversibles. Procede con precaución.</p>
+          <button class="btn-danger" onclick="confirm('¿Estás seguro de limpiar el caché?') && alert('Caché limpiado')">
+            Limpiar Caché
+          </button>
+          <button class="btn-danger" onclick="confirm('¿Seguro que deseas reiniciar el servidor?') && alert('Funcionalidad en desarrollo')">
+            Reiniciar Servidor
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-common.js"></script>
+</body>
+</html>

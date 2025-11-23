@@ -1,0 +1,135 @@
+<!-- Slots Machine Game Content -->
+<div class="game-content-wrapper">
+    <div class="slots-wrapper">
+        <div class="slot-machine" id="slotMachine">
+            <!-- Parte superior -->
+            <div class="machine-top">
+                <div class="machine-title">🎰 NIMETSU SLOTS 🎰</div>
+                <div class="jackpot-box">
+                    <span class="jackpot-label">Jackpot</span>
+                    <span class="jackpot-amount" id="jackpotAmount">500x</span>
+                </div>
+            </div>
+
+            <!-- Cuerpo: reels izquierda, panel derecha -->
+            <div class="machine-body">
+                <div class="machine-left">
+                    <div class="machine-screen">
+                        <div class="reels-container">
+                            <div class="reels" id="reels">
+                                <!-- 5 columnas x 3 filas -->
+                                <div class="reel" data-reel="0" id="column1">
+                                    <div class="symbol-cell" data-row="0"><div class="symbol reel-symbol">🍎</div></div>
+                                    <div class="symbol-cell" data-row="1"><div class="symbol reel-symbol">🍊</div></div>
+                                    <div class="symbol-cell" data-row="2"><div class="symbol reel-symbol">🍋</div></div>
+                                </div>
+                                <div class="reel" data-reel="1" id="column2">
+                                    <div class="symbol-cell" data-row="0"><div class="symbol reel-symbol">🍇</div></div>
+                                    <div class="symbol-cell" data-row="1"><div class="symbol reel-symbol">💎</div></div>
+                                    <div class="symbol-cell" data-row="2"><div class="symbol reel-symbol">👑</div></div>
+                                </div>
+                                <div class="reel" data-reel="2" id="column3">
+                                    <div class="symbol-cell" data-row="0"><div class="symbol reel-symbol">7️⃣</div></div>
+                                    <div class="symbol-cell" data-row="1"><div class="symbol reel-symbol">🌟</div></div>
+                                    <div class="symbol-cell" data-row="2"><div class="symbol reel-symbol">🍎</div></div>
+                                </div>
+                                <div class="reel" data-reel="3" id="column4">
+                                    <div class="symbol-cell" data-row="0"><div class="symbol reel-symbol">🍊</div></div>
+                                    <div class="symbol-cell" data-row="1"><div class="symbol reel-symbol">🍋</div></div>
+                                    <div class="symbol-cell" data-row="2"><div class="symbol reel-symbol">🍇</div></div>
+                                </div>
+                                <div class="reel" data-reel="4" id="column5">
+                                    <div class="symbol-cell" data-row="0"><div class="symbol reel-symbol">💎</div></div>
+                                    <div class="symbol-cell" data-row="1"><div class="symbol reel-symbol">👑</div></div>
+                                    <div class="symbol-cell" data-row="2"><div class="symbol reel-symbol">7️⃣</div></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Winning Line Indicator -->
+                            <div class="winning-line"></div>
+                        </div>
+                        <div class="status-text" id="statusText">Pulsa SPIN para jugar.</div>
+                    </div>
+                </div>
+
+                <div class="machine-right">
+                    <div class="info-panel">
+                        <!-- Sección de Apuesta -->
+                        <div class="bet-section-full">
+                            <div class="section-header">APUESTA</div>
+                            <div class="bet-input-wrapper">
+                                <span class="currency-symbol">$</span>
+                                <input type="number" id="betInput" min="10" step="10" value="100"/>
+                                <span class="currency-label">CLP</span>
+                            </div>
+                            <div class="quick-bets">
+                                <button class="quick-bet-btn chip-btn" data-amount="100">100</button>
+                                <button class="quick-bet-btn chip-btn" data-amount="500">500</button>
+                                <button class="quick-bet-btn chip-btn" data-amount="1000">1K</button>
+                                <button class="quick-bet-btn chip-btn" data-amount="5000">5K</button>
+                                <button class="quick-bet-btn chip-btn" data-amount="10000">10K</button>
+                            </div>
+                        </div>
+
+                        <!-- Pantalla de Resultado -->
+                        <div class="result-section-full">
+                            <div class="section-header">ÚLTIMO RESULTADO</div>
+                            <div id="resultDisplay" class="result-display show">
+                                <div class="result-display-icon" id="resultIcon">-</div>
+                                <div class="result-display-title" id="resultDisplayTitle">ESPERANDO</div>
+                                <div class="result-display-amount" id="resultDisplayAmount">$0</div>
+                            </div>
+                        </div>
+
+                        <!-- Estadísticas en fila horizontal -->
+                        <div class="stats-row">
+                            <div class="stat-box">
+                                <span class="stat-label">APUESTA ACTUAL</span>
+                                <span class="stat-value" id="currentBet">$0</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">ÚLTIMA GANANCIA</span>
+                                <span class="stat-value" id="winnings">$0</span>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Auto-Spin -->
+                        <div class="autospin-section-full">
+                            <div class="section-header">GIROS AUTOMÁTICOS</div>
+                            <div class="auto-spin-grid">
+                                <button class="auto-spin-btn" data-spins="1">1x</button>
+                                <button class="auto-spin-btn" data-spins="10">10x</button>
+                                <button class="auto-spin-btn" data-spins="25">25x</button>
+                                <button class="auto-spin-btn" data-spins="50">50x</button>
+                                <button class="auto-spin-btn" data-spins="100">100x</button>
+                            </div>
+                            <div class="auto-spin-counter" id="autoSpinCounter">
+                                <span class="counter-label">Restantes:</span>
+                                <strong class="counter-value" id="remainingSpins">0</strong>
+                            </div>
+                        </div>
+
+                        <!-- Controles Principales -->
+                        <div class="controls-section">
+                            <button class="spin-btn" id="spinBtn">
+                                <span class="btn-text">GIRAR</span>
+                            </button>
+                            <button class="auto-btn" id="autoBtn">
+                                <span class="btn-text">AUTO GIRAR</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div id="resultModal" class="slots-result-modal">
+    <div class="modal-content-slots">
+        <h2 id="resultTitle">¡GANASTE!</h2>
+        <div class="result-amount" id="resultAmount">$0</div>
+        <button class="continue-btn" onclick="closeResultModal()">Continuar</button>
+    </div>
+</div>

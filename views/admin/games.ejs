@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+  <div class="admin-container">
+    <%- include('../partials/admin-sidebar') %>
+
+    <main class="admin-content">
+      <%- include('../partials/admin-header', { pageTitle: 'Estadísticas de Juegos' }) %>
+
+      <div class="content-wrapper">
+        <% if (gameStats.length === 0) { %>
+          <div class="empty-state">
+            <h2>📊 Sin Datos de Juegos</h2>
+            <p>No hay estadísticas de juegos disponibles aún.</p>
+            <p>Los datos aparecerán aquí cuando los usuarios jueguen.</p>
+          </div>
+        <% } else { %>
+          <div class="games-grid">
+            <% gameStats.forEach(game => { %>
+              <div class="game-card">
+                <div class="game-header">
+                  <h3><%= game.gameName %></h3>
+                </div>
+                <div class="game-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">Total Partidas</span>
+                    <span class="stat-value"><%= game.totalGames %></span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Victorias</span>
+                    <span class="stat-value success"><%= game.wins %></span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Derrotas</span>
+                    <span class="stat-value danger"><%= game.losses %></span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Total Apostado</span>
+                    <span class="stat-value">$<%= game.totalBet.toLocaleString('es-CL') %></span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">Total Ganado</span>
+                    <span class="stat-value">$<%= game.totalWon.toLocaleString('es-CL') %></span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">% Victorias</span>
+                    <span class="stat-value"><%= ((game.wins / game.totalGames) * 100).toFixed(1) %>%</span>
+                  </div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-common.js"></script>
+</body>
+</html>

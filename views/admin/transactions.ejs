@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+  <div class="admin-container">
+    <%- include('../partials/admin-sidebar') %>
+
+    <main class="admin-content">
+      <%- include('../partials/admin-header', { pageTitle: 'Gestión de Transacciones' }) %>
+
+      <div class="content-wrapper">
+        <!-- Filtros -->
+        <div class="filters-section">
+          <h3>🔍 Filtros</h3>
+          <form method="GET" action="/admin/transactions" class="filters-form">
+            <div class="filter-group">
+              <label>Tipo:</label>
+              <select name="type">
+                <option value="all" <%= currentType === 'all' ? 'selected' : '' %>>Todos</option>
+                <option value="deposit" <%= currentType === 'deposit' ? 'selected' : '' %>>Depósitos</option>
+                <option value="withdraw" <%= currentType === 'withdraw' ? 'selected' : '' %>>Retiros</option>
+                <option value="adjustment" <%= currentType === 'adjustment' ? 'selected' : '' %>>Ajustes</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Estado:</label>
+              <select name="status">
+                <option value="all" <%= currentStatus === 'all' ? 'selected' : '' %>>Todos</option>
+                <option value="pending" <%= currentStatus === 'pending' ? 'selected' : '' %>>Pendiente</option>
+                <option value="processing" <%= currentStatus === 'processing' ? 'selected' : '' %>>Procesando</option>
+                <option value="completed" <%= currentStatus === 'completed' ? 'selected' : '' %>>Completado</option>
+                <option value="rejected" <%= currentStatus === 'rejected' ? 'selected' : '' %>>Rechazado</option>
+                <option value="cancelled" <%= currentStatus === 'cancelled' ? 'selected' : '' %>>Cancelado</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-filter">Aplicar</button>
+          </form>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="stats-row">
+          <div class="stat-mini">
+            <span class="stat-value"><%= total %></span>
+            <span class="stat-label">Total Transacciones</span>
+          </div>
+          <div class="stat-mini">
+            <span class="stat-value"><%= transactions.filter(t => t.status === 'pending' || t.status === 'processing').length %></span>
+            <span class="stat-label">Pendientes</span>
+          </div>
+        </div>
+
+        <!-- Tabla de transacciones -->
+        <div class="table-container">
+          <div class="table-header">
+            <h2>📋 Lista de Transacciones</h2>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Método</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (transactions.length === 0) { %>
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 40px;">
+                    No hay transacciones para mostrar
+                  </td>
+                </tr>
+              <% } else { %>
+                <% transactions.forEach(tx => { %>
+                  <tr>
+                    <td><strong>#<%= tx.transactionId %></strong></td>
+                    <td>
+                      <%= tx.nickname || 'N/A' %><br>
+                      <small><%= tx.email || '' %></small>
+                    </td>
+                    <td>
+                      <span class="type-badge <%= tx.type %>">
+                        <%= tx.type === 'deposit' ? '💰 Depósito' : tx.type === 'withdraw' ? '💸 Retiro' : '⚙️ Ajuste' %>
+                      </span>
+                    </td>
+                    <td class="amount">$<%= tx.amount.toLocaleString('es-CL') %></td>
+                    <td>
+                      <span class="status-badge <%= tx.status %>">
+                        <%= tx.status %>
+                      </span>
+                    </td>
+                    <td><%= tx.method || '-' %></td>
+                    <td><%= new Date(tx.createdAt).toLocaleString('es-CL') %></td>
+                    <td>
+                      <button class="btn-small btn-info" onclick="viewTransaction(<%= tx.transactionId %>)">Ver</button>
+                      <% if (tx.status === 'pending' || tx.status === 'processing') { %>
+                        <button class="btn-small btn-success" onclick="updateStatus(<%= tx.transactionId %>, 'completed')">✓</button>
+                        <button class="btn-small btn-danger" onclick="updateStatus(<%= tx.transactionId %>, 'rejected')">✗</button>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+
+          <!-- Paginación -->
+          <div class="pagination">
+            <% if (currentPage > 1) { %>
+              <a href="?page=<%= currentPage - 1 %>&type=<%= currentType %>&status=<%= currentStatus %>" class="btn-page">Anterior</a>
+            <% } %>
+            <span class="page-info">Página <%= currentPage %> de <%= totalPages %></span>
+            <% if (currentPage < totalPages) { %>
+              <a href="?page=<%= currentPage + 1 %>&type=<%= currentType %>&status=<%= currentStatus %>" class="btn-page">Siguiente</a>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-transactions.js"></script>
+</body>
+</html>

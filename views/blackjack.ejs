@@ -1,0 +1,26 @@
+<%- include('partials/game-head', {
+    pageTitle: 'Blackjack',
+    customCSS: null,
+    inlineStyles: null
+}) %>
+
+<div class="casino-fullscreen">
+    <%- include('partials/game-topbar', {
+        gameTitle: '<i class="fas fa-spade"></i> BLACKJACK <i class="fas fa-heart"></i>',
+        showSettings: false
+    }) %>
+
+    <%- include('blackjack-content') %>
+
+    <%- include('partials/game-menu', {
+        currentGame: 'blackjack',
+        showExtraMenuItems: false
+    }) %>
+
+    <%- include('partials/game-ui') %>
+</div>
+
+<%- include('partials/game-footer', {
+    gameScript: '/js/blackjack.js',
+    additionalScripts: null
+}) %>

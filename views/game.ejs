@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= game.title %> - Nimetsu Casino</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/game.css">
+</head>
+<body>
+
+  <header class="game-header">
+    <div class="header-content">
+      <div class="header-left">
+        <button class="btn-back" id="backBtn">← Atrás</button>
+        <h1 class="game-title"><%= game.title %></h1>
+      </div>
+      <div class="header-right">
+        <div class="balance-info">
+          <span class="label">Saldo:</span>
+          <span class="amount" id="balance">$1,000.00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="game-container">
+    <div class="game-area">
+
+      <div class="game-placeholder">
+        <div class="placeholder-icon"><%= game.title.charAt(0) %></div>
+        <h2><%= game.title %></h2>
+        <p><%= game.description %></p>
+        
+        <div class="game-info">
+          <div class="info-item">
+            <span class="info-label">Apuesta Mínima:</span>
+            <span class="info-value">${<%= game.minBet %></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Apuesta Máxima:</span>
+            <span class="info-value">${<%= game.maxBet %></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">RTP:</span>
+            <span class="info-value"><%= game.rtp %>%</span>
+          </div>
+        </div>
+
+        <p class="placeholder-message">
+          Este juego será implementado pronto.<br>
+          <small>La lógica del juego se cargará aquí</small>
+        </p>
+      </div>
+    </div>
+
+    <div class="game-controls">
+      <div class="control-group">
+        <label for="betAmount">Monto de Apuesta</label>
+        <div class="bet-input-group">
+          <input type="number" id="betAmount" min="<%= game.minBet %>" max="<%= game.maxBet %>" value="<%= game.minBet %>" />
+          <span class="currency">$</span>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <button class="btn-play-game" id="playBtn">JUGAR</button>
+        <button class="btn-clear" id="clearBtn">Limpiar</button>
+      </div>
+
+      <div class="quick-bets">
+        <button class="quick-bet" data-amount="<%= game.minBet %>">$<%= game.minBet %></button>
+        <button class="quick-bet" data-amount="<%= Math.floor(game.maxBet * 0.25) %>">$<%= Math.floor(game.maxBet * 0.25) %></button>
+        <button class="quick-bet" data-amount="<%= Math.floor(game.maxBet * 0.5) %>">$<%= Math.floor(game.maxBet * 0.5) %></button>
+        <button class="quick-bet" data-amount="<%= Math.floor(game.maxBet) %>">$<%= Math.floor(game.maxBet) %></button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const gameId = '<%= gameId %>';
+    const minBet = <%= game.minBet %>;
+    const maxBet = <%= game.maxBet %>;
+  </script>
+  <script src="/js/game.js"></script>
+</body>
+</html>

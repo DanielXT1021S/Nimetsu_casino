@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %> - Casino</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- CSS Modular del Casino -->
+    <link rel="stylesheet" href="/css/games/game-base.css">
+    <link rel="stylesheet" href="/css/games/game-cards.css">
+    <link rel="stylesheet" href="/css/games/game-menu.css">
+    <link rel="stylesheet" href="/css/games/game-table.css">
+    <link rel="stylesheet" href="/css/games/game-ui.css">
+    <link rel="stylesheet" href="/css/games/game-modals.css">
+    
+    <!-- CSS específico del juego -->
+    <% if (typeof customCSS !== 'undefined' && customCSS) { %>
+        <link rel="stylesheet" href="<%= customCSS %>">
+    <% } %>
+    
+    <!-- Estilos inline adicionales (opcional) -->
+    <% if (typeof inlineStyles !== 'undefined' && inlineStyles) { %>
+        <style><%= inlineStyles %></style>
+    <% } %>
+</head>
+<body>

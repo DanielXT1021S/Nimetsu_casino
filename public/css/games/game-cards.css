@@ -1,0 +1,523 @@
+/* ============================================
+   GAME CARDS - Sistema de cartas reutilizable
+   ============================================ */
+
+/* ============================================
+   CONFIGURACIÓN DE CARTAS
+   ============================================ */
+:root {
+  /* Tamaños de cartas */
+  --card-width-sm: 80px;
+  --card-height-sm: 120px;
+  
+  --card-width-md: 130px;
+  --card-height-md: 190px;
+  
+  --card-width-lg: 160px;
+  --card-height-lg: 240px;
+  
+  /* Colores de cartas */
+  --card-red: #e11d48;
+  --card-black: #1f2937;
+  --card-back-primary: #7c3aed;
+  --card-back-secondary: #6d28d9;
+  --card-back-dark: #5b21b6;
+  --card-border: #c4b5fd;
+  
+  /* Animaciones */
+  --card-flip-duration: 0.6s;
+  --card-deal-duration: 0.5s;
+}
+
+/* ============================================
+   CONTENEDORES DE CARTAS
+   ============================================ */
+.cards-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--game-spacing-sm);
+}
+
+.cards-container.stacked {
+  gap: -40px;
+}
+
+.cards-container.vertical {
+  flex-direction: column;
+}
+
+/* ============================================
+   CARTA BASE
+   ============================================ */
+.card {
+  width: var(--card-width-md);
+  height: var(--card-height-md);
+  perspective: 1000px;
+  cursor: pointer;
+  position: relative;
+  transition: transform var(--card-flip-duration) cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+  filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.7));
+}
+
+/* Tamaños de cartas */
+.card.sm {
+  width: var(--card-width-sm);
+  height: var(--card-height-sm);
+}
+
+.card.lg {
+  width: var(--card-width-lg);
+  height: var(--card-height-lg);
+}
+
+/* Estados de carta */
+.card:hover:not(.flip):not(.disabled) {
+  transform: translateY(-8px);
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.8));
+}
+
+.card.flip {
+  transform: rotateY(180deg);
+}
+
+.card.flip:hover:not(.disabled) {
+  transform: rotateY(180deg) translateY(-5px);
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card.selected {
+  transform: translateY(-20px);
+  filter: drop-shadow(0 20px 40px rgba(147, 51, 234, 0.8));
+}
+
+/* Animación de carta desde la mesa */
+@keyframes dealFromTable {
+  0% {
+    opacity: 0;
+    transform: translateY(80px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card.deal-animation {
+  animation: dealFromTable 0.4s ease-out forwards;
+}
+
+.card.deal-animation.flip {
+  animation: dealFromTable 0.4s ease-out forwards;
+  transform: rotateY(180deg);
+}
+
+/* ============================================
+   REVERSO DE CARTA
+   ============================================ */
+.card-back {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 30% 30%,
+    var(--card-back-primary) 0%,
+    var(--card-back-secondary) 50%,
+    var(--card-back-dark) 100%
+  );
+  border: 4px solid var(--card-border);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 2px 6px rgba(196, 181, 253, 0.2),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 30px rgba(124, 58, 237, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-back::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 3px solid rgba(196, 181, 253, 0.5);
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 0 20px rgba(196, 181, 253, 0.2),
+    0 0 10px rgba(196, 181, 253, 0.3);
+}
+
+.card-back::after {
+  content: '♠♥♦♣';
+  font-size: 70px;
+  color: rgba(196, 181, 253, 0.35);
+  text-align: center;
+  line-height: 1;
+  text-shadow: 
+    0 0 25px rgba(196, 181, 253, 0.6),
+    0 0 50px rgba(124, 58, 237, 0.4);
+  animation: symbolGlow 3s ease-in-out infinite;
+}
+
+.card.sm .card-back::after {
+  font-size: 45px;
+}
+
+.card.lg .card-back::after {
+  font-size: 90px;
+}
+
+@keyframes symbolGlow {
+  0%, 100% {
+    opacity: 0.35;
+    text-shadow: 
+      0 0 20px rgba(196, 181, 253, 0.5),
+      0 0 40px rgba(124, 58, 237, 0.3);
+  }
+  50% {
+    opacity: 0.45;
+    text-shadow: 
+      0 0 30px rgba(196, 181, 253, 0.7),
+      0 0 60px rgba(124, 58, 237, 0.5);
+  }
+}
+
+/* ============================================
+   FRENTE DE CARTA
+   ============================================ */
+.card-front {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 50%, #f1f3f5 100%);
+  border: 3px solid #2d3748;
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.8),
+    inset 0 3px 6px rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+  transform: rotateY(180deg);
+}
+
+.card-front.red {
+  color: var(--card-red);
+}
+
+.card-front.black {
+  color: var(--card-black);
+}
+
+/* Esquinas de carta */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 2px;
+}
+
+.card-corner.top-left {
+  top: 12px;
+  left: 12px;
+}
+
+.card-corner.bottom-right {
+  bottom: 12px;
+  right: 12px;
+  transform: rotate(180deg);
+}
+
+.card.sm .card-corner.top-left,
+.card.sm .card-corner.bottom-right {
+  top: 8px;
+  left: 8px;
+  bottom: 8px;
+  right: 8px;
+}
+
+/* Elementos de carta */
+.rank {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.suit {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.card.sm .rank {
+  font-size: 18px;
+}
+
+.card.sm .suit {
+  font-size: 14px;
+}
+
+.card.lg .rank {
+  font-size: 36px;
+}
+
+.card.lg .suit {
+  font-size: 28px;
+}
+
+/* Centro de carta */
+.card-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.suit-large {
+  font-size: 65px;
+  opacity: 0.25;
+  font-weight: 700;
+}
+
+.card.sm .suit-large {
+  font-size: 40px;
+}
+
+.card.lg .suit-large {
+  font-size: 85px;
+}
+
+/* ============================================
+   ÁREAS DE JUEGO
+   ============================================ */
+.dealer-area,
+.player-area {
+  width: 100%;
+  max-width: 900px;
+  text-align: center;
+  padding: var(--game-spacing-lg);
+  position: relative;
+  animation: fadeInSlide 0.6s ease-out;
+}
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dealer-area h3,
+.player-area h3 {
+  font-size: 20px;
+  color: var(--game-gold);
+  margin-bottom: var(--game-spacing-md);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(218, 165, 32, 0.5);
+}
+
+/* Resultados de mano - Scoreboards flotantes */
+.dealer-result {
+  position: absolute;
+  top: 20%;
+  right: 8%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #daa520;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, 
+    rgba(76, 29, 149, 0.4) 0%,
+    rgba(59, 7, 100, 0.5) 50%,
+    rgba(30, 9, 56, 0.6) 100%);
+  border: 2px solid rgba(218, 165, 32, 0.6);
+  border-radius: 10px;
+  min-width: 140px;
+  min-height: 36px;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(218, 165, 32, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 
+    0 0 10px rgba(218, 165, 32, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(218, 165, 32, 0.4);
+  transition: all 0.3s ease;
+  animation: resultPulse 0.5s ease-out;
+  z-index: 100;
+}
+
+.dealer-result:not(:empty) {
+  display: flex;
+}
+
+.dealer-result::before {
+  content: '🎰 DEALER';
+  font-size: 9px;
+  color: rgba(218, 165, 32, 0.7);
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+.hand-result {
+  position: absolute;
+  bottom: 20%;
+  right: 8%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #10b981;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, 
+    rgba(76, 29, 149, 0.4) 0%,
+    rgba(59, 7, 100, 0.5) 50%,
+    rgba(30, 9, 56, 0.6) 100%);
+  border: 2px solid rgba(16, 185, 129, 0.6);
+  border-radius: 10px;
+  min-width: 140px;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(16, 185, 129, 0.3),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: 
+    0 0 10px rgba(16, 185, 129, 0.8),
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 20px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+  animation: resultPulse 0.5s ease-out;
+  z-index: 100;
+}
+
+.hand-result::before {
+  content: '👤 PLAYER';
+  font-size: 9px;
+  color: rgba(16, 185, 129, 0.7);
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+@keyframes resultPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.hand-result.win {
+  color: var(--game-success);
+  border-color: var(--game-success);
+  animation: winPulse 1s ease-in-out;
+}
+
+.hand-result.lose {
+  color: var(--game-error);
+  border-color: var(--game-error);
+}
+
+.hand-result.push {
+  color: var(--game-warning);
+  border-color: var(--game-warning);
+}
+
+@keyframes winPulse {
+  0%, 100% { 
+    transform: scale(1); 
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
+  }
+  50% { 
+    transform: scale(1.05); 
+    box-shadow: 0 8px 35px rgba(16, 185, 129, 0.6);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Cards
+   ============================================ */
+@media (max-width: 768px) {
+  :root {
+    --card-width-md: 95px;
+    --card-height-md: 140px;
+  }
+  
+  .cards-container {
+    gap: 12px;
+  }
+  
+  .dealer-area,
+  .player-area {
+    padding: var(--game-spacing-md);
+  }
+  
+  .dealer-result,
+  .hand-result {
+    font-size: 10px;
+    padding: 6px 10px;
+    min-height: 32px;
+    min-width: 110px;
+    right: 3%;
+  }
+  
+  .card-back::after {
+    font-size: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --card-width-md: 80px;
+    --card-height-md: 120px;
+  }
+  
+  .cards-container {
+    gap: 8px;
+  }
+  
+  .dealer-result,
+  .hand-result {
+    font-size: 9px;
+    padding: 5px 8px;
+    min-height: 28px;
+    min-width: 100px;
+    right: 2%;
+  }
+  
+  .dealer-result::before,
+  .hand-result::before {
+    font-size: 8px;
+  }
+}

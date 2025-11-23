@@ -1,0 +1,26 @@
+<%- include('partials/game-head', {
+    pageTitle: 'Slots',
+    customCSS: '/css/slots.css',
+    inlineStyles: null
+}) %>
+
+<div class="casino-fullscreen">
+    <%- include('partials/game-topbar', {
+        gameTitle: '<i class="fas fa-coins"></i> SLOTS <i class="fas fa-coins"></i>',
+        showSettings: true
+    }) %>
+
+    <%- include('slots-content') %>
+
+    <%- include('partials/game-menu', {
+        currentGame: 'slots',
+        showExtraMenuItems: false
+    }) %>
+
+    <%- include('partials/game-ui') %>
+</div>
+
+<%- include('partials/game-footer', {
+    gameScript: '/js/slots.js',
+    additionalScripts: null
+}) %>

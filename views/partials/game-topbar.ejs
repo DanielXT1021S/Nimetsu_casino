@@ -1,0 +1,25 @@
+<!-- Top Bar -->
+<div class="top-bar">
+    <div class="user-info">
+        <button class="menu-btn" id="menuBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="balance-widget">
+            <span class="balance-label">SALDO</span>
+            <span class="balance-amount" id="balanceAmount">$0</span>
+        </div>
+    </div>
+    <div class="game-title">
+        <h1><%- gameTitle %></h1>
+    </div>
+    <div class="game-stats">
+        <% if (typeof showSettings !== 'undefined' && showSettings) { %>
+            <button class="settings-btn" id="settingsBtn">
+                <i class="fas fa-cog"></i>
+            </button>
+        <% } %>
+        <button class="fullscreen-btn" id="fullscreenBtn">
+            <i class="fas fa-expand"></i>
+        </button>
+    </div>
+</div>

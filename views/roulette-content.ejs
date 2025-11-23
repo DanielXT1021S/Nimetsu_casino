@@ -1,0 +1,317 @@
+<!-- Main Roulette Area - CONTENIDO ESPECÍFICO DE RULETA -->
+<div class="roulette-game-area">
+    <!-- Roulette Wheel Section -->
+    <div class="wheel-container">
+        <div class="wheel-wrapper">
+            <svg class="roulette-svg" id="rouletteSvg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                <!-- RUEDA FIJA -->
+                <g id="wheelGroup">
+                    <!-- Borde negro exterior -->
+                    <circle cx="200" cy="200" r="190" fill="#070708" />
+                    <!-- Aro negro grueso -->
+                    <circle cx="200" cy="200" r="180" fill="#151515" />
+                    <!-- Disco dorado base -->
+                    <circle cx="200" cy="200" r="170" fill="#d4af37" />
+
+                    <!-- Anillo de casillas (generado por JS) -->
+                    <g id="pocketsGroup"></g>
+
+                    <!-- Disco dorado interno -->
+                    <circle cx="200" cy="200" r="120" fill="#e0b84f" />
+                    <!-- Aro negro interior -->
+                    <circle cx="200" cy="200" r="90" fill="#111" />
+                    <!-- Disco central -->
+                    <circle cx="200" cy="200" r="70" fill="#d4af37" />
+                    <!-- Botón central claro -->
+                    <circle cx="200" cy="200" r="35" fill="#f6db8c" />
+                    <line x1="175" y1="200" x2="225" y2="200" stroke="#b3881b" stroke-width="4" />
+                    <line x1="200" y1="175" x2="200" y2="225" stroke="#b3881b" stroke-width="4" />
+                </g>
+
+                <!-- SOMBRA de la bola -->
+                <circle id="ballShadow" cx="200" cy="55" r="5" fill="black" opacity="0.4" />
+
+                <!-- BOLA -->
+                <circle id="ball" cx="200" cy="50" r="8" fill="#ffffff" />
+
+                <!-- Puntero arriba -->
+                <polygon points="200,18 188,48 212,48" fill="#f9d26a" stroke="#111" stroke-width="2" />
+            </svg>
+        </div>
+        <div class="last-numbers">
+            <h4>Últimos Resultados</h4>
+            <div id="lastResults" class="results-display"></div>
+        </div>
+    </div>
+
+    <!-- Betting Table Section -->
+    <div class="betting-table-wrapper">
+        <div class="betting-header">
+            <h2>MESA DE APUESTAS</h2>
+            <span class="total-bet">Total: <span id="totalBet">$0</span></span>
+        </div>
+
+        <!-- Tablero estilo casino profesional -->
+        <div class="roulette-board">
+            <div class="board-top">
+                <!-- 0 a la izquierda (triángulo) -->
+                <div class="zero-wrapper">
+                    <div class="zero-shape bet-cell" data-bet-type="straight" data-bet-value="0">
+                        <span>0</span>
+                    </div>
+                </div>
+
+                <!-- Bloque principal -->
+                <div class="main-block">
+                    <!-- Números + columna 2 to 1 -->
+                    <div class="numbers-plus-two">
+                        <!-- 3 filas x 12 columnas -->
+                        <div class="numbers-grid" id="numbersGrid">
+                            <!-- Fila superior: 3, 6, 9, ..., 36 -->
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="3"><span>3</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="6"><span>6</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="9"><span>9</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="12"><span>12</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="15"><span>15</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="18"><span>18</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="21"><span>21</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="24"><span>24</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="27"><span>27</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="30"><span>30</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="33"><span>33</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="36"><span>36</span></div>
+
+                            <!-- Fila media: 2, 5, 8, ..., 35 -->
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="2"><span>2</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="5"><span>5</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="8"><span>8</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="11"><span>11</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="14"><span>14</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="17"><span>17</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="20"><span>20</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="23"><span>23</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="26"><span>26</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="29"><span>29</span></div>
+                            <div class="bet-cell number red" data-bet-type="straight" data-bet-value="32"><span>32</span></div>
+                            <div class="bet-cell number black" data-bet-type="straight" data-bet-value="35"><span>35</span></div>
+
+                            <!-- Fila inferior: 1, 4, 7, ..., 34 -->
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="1"><span>1</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="4"><span>4</span></div>
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="7"><span>7</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="10"><span>10</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="13"><span>13</span></div>
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="16"><span>16</span></div>
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="19"><span>19</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="22"><span>22</span></div>
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="25"><span>25</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="28"><span>28</span></div>
+                            <div class="bet-cell number black cell-row-last" data-bet-type="straight" data-bet-value="31"><span>31</span></div>
+                            <div class="bet-cell number red cell-row-last" data-bet-type="straight" data-bet-value="34"><span>34</span></div>
+                        </div>
+
+                        <!-- Columna 2 to 1 -->
+                        <div class="two-to-one-col">
+                            <div class="bet-cell two-to-one" data-bet-type="column_3rd">2 to 1</div>
+                            <div class="bet-cell two-to-one" data-bet-type="column_2nd">2 to 1</div>
+                            <div class="bet-cell two-to-one" data-bet-type="column_1st">2 to 1</div>
+                        </div>
+                    </div>
+
+                    <!-- Docenas -->
+                    <div class="dozens-row">
+                        <div class="bet-cell dozen" data-bet-type="dozen_1st">1st 12</div>
+                        <div class="bet-cell dozen" data-bet-type="dozen_2nd">2nd 12</div>
+                        <div class="bet-cell dozen" data-bet-type="dozen_3rd">3rd 12</div>
+                    </div>
+
+                    <!-- Apuestas exteriores -->
+                    <div class="outside-row">
+                        <div class="bet-cell outside" data-bet-type="low">1 to 18</div>
+                        <div class="bet-cell outside" data-bet-type="even">EVEN</div>
+                        <div class="bet-cell outside symbol-red" data-bet-type="red"><span>RED</span></div>
+                        <div class="bet-cell outside symbol-black" data-bet-type="black"><span>BLACK</span></div>
+                        <div class="bet-cell outside" data-bet-type="odd">ODD</div>
+                        <div class="bet-cell outside" data-bet-type="high">19 to 36</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bets Summary -->
+        <div class="bets-summary">
+            <div class="summary-title">Mis Apuestas</div>
+            <div id="betsSummary" class="summary-list">
+                <!-- Bets will be listed here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payout Sidebar - ESPECÍFICO DE RULETA -->
+<div class="payout-sidebar hidden" id="payoutSidebar">
+    <button class="toggle-payout-btn" id="togglePayoutBtn">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="payout-sidebar-content">
+        <div class="payout-header">
+            <h2><i class="fas fa-trophy"></i> PAGOS</h2>
+        </div>
+        <div class="payout-list">
+            <div class="payout-item">
+                <span class="hand-name">Número Pleno</span>
+                <span class="hand-payout">35:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Semipleno</span>
+                <span class="hand-payout">17:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Calle</span>
+                <span class="hand-payout">11:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Cuadro</span>
+                <span class="hand-payout">8:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Línea</span>
+                <span class="hand-payout">5:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Columna</span>
+                <span class="hand-payout">2:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Docena</span>
+                <span class="hand-payout">2:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Rojo/Negro</span>
+                <span class="hand-payout">1:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Par/Impar</span>
+                <span class="hand-payout">1:1</span>
+            </div>
+            <div class="payout-item">
+                <span class="hand-name">Alto/Bajo</span>
+                <span class="hand-payout">1:1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Control Panel - ESPECÍFICO DE RULETA -->
+<div class="control-bar">
+    <!-- Betting Controls -->
+    <div class="bet-controls" id="betControls">
+        <div class="compact-bet-header">
+            <button class="toggle-chips-btn" id="toggleChipsBtn">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="compact-bet-display">
+                <span class="compact-bet-amount" id="compactBetAmount">$100</span>
+            </div>
+        </div>
+        
+        <div class="chips-section" id="chipsSection">
+            <div class="chips-container">
+                <button class="casino-chip" data-value="10">
+                    <img src="/img/chips/chip-10.png" alt="$10">
+                    <span class="chip-value">$10</span>
+                </button>
+                <button class="casino-chip" data-value="25">
+                    <img src="/img/chips/chip-25.png" alt="$25">
+                    <span class="chip-value">$25</span>
+                </button>
+                <button class="casino-chip" data-value="50">
+                    <img src="/img/chips/chip-50.png" alt="$50">
+                    <span class="chip-value">$50</span>
+                </button>
+                <button class="casino-chip" data-value="100">
+                    <img src="/img/chips/chip-100.png" alt="$100">
+                    <span class="chip-value">$100</span>
+                </button>
+                <button class="casino-chip" data-value="500">
+                    <img src="/img/chips/chip-500.png" alt="$500">
+                    <span class="chip-value">$500</span>
+                </button>
+                <button class="casino-chip" data-value="1000">
+                    <img src="/img/chips/chip-1000.png" alt="$1000">
+                    <span class="chip-value">$1K</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="bet-display-group">
+            <div class="bet-control-wrapper">
+                <button class="bet-control-btn" id="decreaseBetBtn" title="Reducir apuesta">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <div class="current-bet-display">
+                    <input type="number" class="bet-amount-input" id="betAmountInput" min="10" max="10000" step="10" value="100">
+                </div>
+                <button class="bet-control-btn" id="increaseBetBtn" title="Aumentar apuesta">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <button class="bet-clear-btn" id="clearBtn">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Actions -->
+    <div class="game-actions">
+        <button id="spinBtn" class="action-btn success">
+            <i class="fas fa-circle-notch"></i> GIRAR
+        </button>
+        <button id="clearBetsBtn" class="action-btn warning">
+            <i class="fas fa-eraser"></i> LIMPIAR
+        </button>
+        <button id="resetBtn" class="action-btn error">
+            <i class="fas fa-redo-alt"></i> NUEVA
+        </button>
+    </div>
+</div>
+
+<!-- Result Display -->
+<div class="result-display">
+    <div id="resultMessage" class="result-message"></div>
+    <div id="resultNumber" class="result-number"></div>
+    <div id="resultWinnings" class="result-winnings"></div>
+</div>
+
+<!-- Modales de Reglas y Premios -->
+<!-- Modal de Reglas -->
+<div id="rulesModal" class="game-modal">
+    <div id="rulesModalOverlay" class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="rulesModalTitle"><i class="fas fa-book"></i> Reglas de la Ruleta</h2>
+            <button id="rulesModalClose" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="rulesModalBody" class="modal-body">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Premios -->
+<div id="prizesModal" class="game-modal">
+    <div id="prizesModalOverlay" class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-gift"></i> Premios y Pagos</h2>
+            <button id="prizesModalClose" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="prizesModalBody" class="modal-body">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>

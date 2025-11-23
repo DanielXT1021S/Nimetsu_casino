@@ -1,0 +1,841 @@
+/* ============================================
+   GAME BASE - Estilos base para todos los juegos
+   ============================================ */
+
+:root {
+  /* Colores del casino */
+  --game-primary: #9333ea;
+  --game-primary-light: #a855f7;
+  --game-primary-dark: #581c87;
+  --game-secondary: #6d28d9;
+  --game-success: #10b981;
+  --game-warning: #f59e0b;
+  --game-error: #ef4444;
+  --game-dark: #0a0a14;
+  --game-darker: #050508;
+  --game-light: #f1f5f9;
+  --game-gold: #fbbf24;
+  
+  /* Espaciado */
+  --game-spacing-xs: 4px;
+  --game-spacing-sm: 8px;
+  --game-spacing-md: 16px;
+  --game-spacing-lg: 24px;
+  --game-spacing-xl: 32px;
+  
+  /* Bordes */
+  --game-radius-sm: 8px;
+  --game-radius-md: 12px;
+  --game-radius-lg: 16px;
+  --game-radius-full: 9999px;
+  
+  /* Sombras */
+  --game-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --game-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --game-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --game-shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.6);
+  
+  /* Transiciones */
+  --game-transition-fast: 0.15s ease;
+  --game-transition-normal: 0.3s ease;
+  --game-transition-slow: 0.5s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: var(--game-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+/* ============================================
+   FULLSCREEN CONTAINER
+   ============================================ */
+.casino-fullscreen {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a1a2e 0%, var(--game-dark) 100%);
+}
+
+/* ============================================
+   TOP BAR - Barra superior común
+   ============================================ */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+  background: rgba(10, 10, 20, 0.95);
+  border-bottom: 2px solid var(--game-primary);
+  padding: 0 var(--game-spacing-xl);
+  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.2);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-lg);
+}
+
+.menu-btn {
+  background: rgba(147, 51, 234, 0.1);
+  border: 2px solid rgba(147, 51, 234, 0.3);
+  color: var(--game-primary-light);
+  width: 45px;
+  height: 45px;
+  border-radius: var(--game-radius-sm);
+  cursor: pointer;
+  font-size: 20px;
+  transition: var(--game-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: var(--game-primary);
+  transform: scale(1.05);
+}
+
+.balance-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.balance-label {
+  font-size: 11px;
+  color: var(--game-primary-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.balance-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(147, 51, 234, 0.5);
+}
+
+.game-title {
+  flex: 1;
+  text-align: center;
+}
+
+.game-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--game-primary-light), var(--game-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--game-spacing-md);
+}
+
+.game-stats {
+  display: flex;
+  gap: var(--game-spacing-md);
+}
+
+.fullscreen-btn,
+.sound-btn,
+.info-btn {
+  background: rgba(147, 51, 234, 0.1);
+  border: 2px solid rgba(147, 51, 234, 0.3);
+  color: var(--game-primary-light);
+  width: 45px;
+  height: 45px;
+  border-radius: var(--game-radius-sm);
+  cursor: pointer;
+  font-size: 18px;
+  transition: var(--game-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-btn:hover,
+.sound-btn:hover,
+.info-btn:hover {
+  background: rgba(147, 51, 234, 0.2);
+  border-color: var(--game-primary);
+  transform: scale(1.05);
+}
+
+/* ============================================
+   CONTROL BAR - Barra inferior común
+   ============================================ */
+.control-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: 
+    linear-gradient(180deg, 
+      rgba(20, 10, 40, 0.96) 0%,
+      rgba(15, 8, 30, 0.98) 100%
+    );
+  border-top: 2px solid rgba(147, 51, 234, 0.4);
+  box-shadow: 
+    0 -10px 40px rgba(0, 0, 0, 0.8),
+    0 -2px 20px rgba(147, 51, 234, 0.2),
+    inset 0 2px 10px rgba(0, 0, 0, 0.3);
+  padding: var(--game-spacing-lg) var(--game-spacing-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(var(--game-spacing-xl) * 2);
+  backdrop-filter: blur(12px);
+  z-index: 900;
+}
+
+.control-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(147, 51, 234, 0.6) 50%,
+    transparent
+  );
+  box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
+}
+
+/* Bet Controls */
+.bet-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-lg);
+  max-width: 800px;
+}
+
+.toggle-chips-btn {
+  display: none;
+}
+
+.compact-bet-header {
+  justify-content: center;
+}
+
+.compact-bet-display {
+  display: none !important;
+}
+
+.chips-section {
+  width: 100%;
+}
+
+.bet-section-title {
+  display: none;
+}
+
+/* Chips Container */
+.chips-container {
+  display: flex;
+  gap: var(--game-spacing-md);
+  align-items: center;
+}
+
+.casino-chip {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.casino-chip::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(135deg, transparent, rgba(147, 51, 234, 0.3));
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.casino-chip img {
+  width: 52px;
+  height: 52px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+  position: relative;
+  z-index: 1;
+}
+
+.casino-chip .chip-value {
+  position: absolute;
+  bottom: -20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(192, 132, 252, 0.8);
+  text-shadow: 0 0 8px rgba(147, 51, 234, 0.8);
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.casino-chip:hover {
+  transform: translateY(-3px);
+}
+
+.casino-chip:hover::before {
+  opacity: 1;
+}
+
+.casino-chip:hover img {
+  transform: scale(1.12);
+  filter: 
+    drop-shadow(0 8px 16px rgba(147, 51, 234, 0.5))
+    drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6));
+}
+
+.casino-chip:hover .chip-value {
+  opacity: 1;
+  transform: translateY(0);
+  color: #fff;
+}
+
+.casino-chip:active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.casino-chip.selected::before {
+  opacity: 1;
+}
+
+.casino-chip.selected img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 15px rgba(147, 51, 234, 0.9));
+  animation: chipPulse 2s ease-in-out infinite;
+}
+
+.casino-chip.selected .chip-value {
+  opacity: 1;
+  transform: translateY(0);
+  color: var(--game-primary-light);
+}
+
+@keyframes chipPulse {
+  0%, 100% { filter: drop-shadow(0 0 15px rgba(147, 51, 234, 0.9)); }
+  50% { filter: drop-shadow(0 0 25px rgba(192, 132, 252, 1)); }
+}
+
+@keyframes chipGlow {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.9)); }
+  50% { filter: drop-shadow(0 0 30px rgba(192, 132, 252, 1)); }
+}
+
+/* Bet Display Group */
+.bet-display-group {
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-md);
+  padding-left: var(--game-spacing-lg);
+  border-left: 2px solid rgba(147, 51, 234, 0.3);
+}
+
+.bet-control-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-sm);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 6px 10px;
+  border-radius: var(--game-radius-lg);
+  border: 2px solid rgba(147, 51, 234, 0.2);
+}
+
+.current-bet-display {
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-xs);
+  flex-shrink: 0;
+}
+
+.bet-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(192, 132, 252, 0.8);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bet-amount {
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 
+    0 0 15px rgba(147, 51, 234, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+  min-width: 90px;
+}
+
+.bet-control-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--game-radius-md);
+  border: 2px solid rgba(147, 51, 234, 0.4);
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(88, 28, 135, 0.2));
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bet-control-btn:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.4), rgba(88, 28, 135, 0.4));
+  border-color: var(--game-primary);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+}
+
+.bet-control-btn:active {
+  transform: scale(0.95);
+}
+
+.bet-amount-input {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  background: transparent;
+  border: none;
+  text-align: center;
+  width: 110px;
+  outline: none;
+  transition: all 0.3s;
+  text-shadow: 
+    0 0 15px rgba(147, 51, 234, 0.8),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 1px;
+  -moz-appearance: textfield;
+}
+
+.bet-amount-input::-webkit-inner-spin-button,
+.bet-amount-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  display: none;
+}
+
+.bet-amount-input:focus {
+  text-shadow: 
+    0 0 20px rgba(147, 51, 234, 1),
+    0 2px 6px rgba(0, 0, 0, 0.9);
+}
+
+.bet-clear-btn {
+  padding: var(--game-spacing-sm) var(--game-spacing-md);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(153, 27, 27, 0.2));
+  border: 2px solid rgba(239, 68, 68, 0.4);
+  color: rgba(252, 165, 165, 0.9);
+  border-radius: var(--game-radius-md);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.bet-clear-btn:hover {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.5), rgba(153, 27, 27, 0.3));
+  border-color: var(--game-error);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 5px 15px rgba(220, 38, 38, 0.5),
+    0 0 25px rgba(239, 68, 68, 0.3);
+  color: #fff;
+}
+
+.bet-clear-btn:active {
+  transform: translateY(0);
+}
+
+.bet-clear-btn i {
+  font-size: 12px;
+}
+
+/* Legacy support - ocultar elementos antiguos */
+.bet-input-group,
+.quick-chips,
+.quick-chip,
+.bet-input,
+.currency-symbol {
+  display: none !important;
+}
+
+/* Game Actions */
+.game-actions {
+  display: flex;
+  gap: var(--game-spacing-md);
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: var(--game-spacing-md) 40px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: var(--game-radius-md);
+  border: none;
+  cursor: pointer;
+  transition: var(--game-transition-normal);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--game-shadow-md);
+  display: flex;
+  align-items: center;
+  gap: var(--game-spacing-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.action-btn:hover::before {
+  left: 100%;
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--game-shadow-lg);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Variantes de botones */
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--game-primary), var(--game-primary-dark));
+  color: #fff;
+  border: 2px solid var(--game-primary-light);
+}
+
+.action-btn.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  border: 2px solid #34d399;
+}
+
+.action-btn.warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  border: 2px solid var(--game-gold);
+}
+
+.action-btn.error {
+  background: linear-gradient(135deg, var(--game-error), #b91c1c);
+  color: #fff;
+  border: 2px solid #f87171;
+}
+
+/* Info Panel */
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--game-spacing-sm);
+  align-items: flex-end;
+}
+
+.current-bet,
+.current-win,
+.game-status {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--game-primary-light);
+}
+
+.current-bet span,
+.current-win span,
+.game-status span {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  margin-left: var(--game-spacing-sm);
+}
+
+/* ============================================
+   RESPONSIVE - Top & Control Bar
+   ============================================ */
+@media (max-width: 768px) {
+  .top-bar {
+    height: 60px;
+    padding: 0 var(--game-spacing-md);
+  }
+  
+  .game-title h1 {
+    font-size: 16px;
+    gap: var(--game-spacing-sm);
+  }
+  
+  .balance-amount {
+    font-size: 18px;
+  }
+  
+  .menu-btn,
+  .fullscreen-btn,
+  .sound-btn,
+  .info-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  
+  .control-bar {
+    min-height: auto;
+    padding: var(--game-spacing-sm) var(--game-spacing-md);
+    gap: var(--game-spacing-sm);
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .bet-controls {
+    flex-direction: column;
+    gap: var(--game-spacing-xs);
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .compact-bet-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 280px;
+    gap: var(--game-spacing-sm);
+    transition: justify-content 0.3s ease;
+  }
+  
+  .compact-bet-header.expanded {
+    justify-content: center;
+  }
+  
+  .compact-bet-display {
+    display: none;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(147, 51, 234, 0.4);
+    border-radius: var(--game-radius-md);
+    padding: var(--game-spacing-xs) var(--game-spacing-md);
+    flex: 1;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .compact-bet-display.show {
+    display: block;
+    opacity: 1;
+  }
+  
+  .compact-bet-amount {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 
+      0 0 12px rgba(147, 51, 234, 0.8),
+      0 2px 4px rgba(0, 0, 0, 0.8);
+  }
+  
+  .toggle-chips-btn {
+    display: flex;
+    width: 50px;
+    height: 32px;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.4), rgba(88, 28, 135, 0.4));
+    border: 2px solid rgba(147, 51, 234, 0.6);
+    border-radius: var(--game-radius-lg);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+  }
+  
+  .toggle-chips-btn:hover {
+    background: linear-gradient(135deg, rgba(147, 51, 234, 0.6), rgba(88, 28, 135, 0.6));
+    border-color: var(--game-primary);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5);
+  }
+  
+  .toggle-chips-btn .toggle-icon {
+    font-size: 14px;
+    transition: transform 0.3s;
+  }
+  
+  .toggle-chips-btn.collapsed .toggle-icon {
+    transform: rotate(180deg);
+  }
+  
+  .chips-section {
+    width: 100%;
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+    opacity: 1;
+    margin-bottom: var(--game-spacing-xs);
+    padding-top: var(--game-spacing-xs);
+  }
+  
+  .chips-section.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+  }
+  
+  .chips-container {
+    gap: var(--game-spacing-xs);
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: var(--game-spacing-xs) 0;
+    max-width: 100%;
+  }
+  
+  .casino-chip {
+    width: 46px;
+    height: 46px;
+  }
+  
+  .casino-chip img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .casino-chip .chip-value {
+    font-size: 9px;
+    bottom: -15px;
+  }
+  
+  .bet-display-group {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+    padding-left: 0;
+    border-left: none;
+    gap: var(--game-spacing-sm);
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+    opacity: 1;
+    margin-bottom: var(--game-spacing-xs);
+  }
+  
+  .bet-display-group.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+  }
+  
+  .bet-control-wrapper {
+    padding: 6px 10px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--game-spacing-sm);
+  }
+  
+  .current-bet-display {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .bet-control-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  
+  .bet-amount-input {
+    width: 80px;
+    font-size: 18px;
+  }
+  
+  .bet-clear-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  
+  .game-actions {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+    gap: var(--game-spacing-sm);
+  }
+  
+  .action-btn {
+    flex: 1;
+    padding: var(--game-spacing-md) var(--game-spacing-sm);
+    font-size: 13px;
+    min-height: 48px;
+  }
+  
+  .action-btn i {
+    font-size: 14px;
+  }
+  
+  .info-panel {
+    width: 100%;
+    align-items: center;
+  }
+}

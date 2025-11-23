@@ -1,0 +1,106 @@
+<!-- Main Table Area - CONTENIDO ESPECÍFICO DE BLACKJACK -->
+<div class="table-area">
+    <!-- Scoreboards -->
+    <div class="dealer-result" id="dealerResult">
+        DEALER: <span id="dealerScore">0</span>
+    </div>
+    <div class="hand-result" id="handResult">
+        TÚ: <span id="playerScore">0</span>
+    </div>
+    
+    <!-- Cards Section -->
+    <div class="cards-section">
+        <!-- Dealer Area -->
+        <div class="dealer-area">
+            <h3><i class="fas fa-user-tie"></i> CRUPIER</h3>
+            <div class="cards-container" id="dealerCards">
+                <!-- Las cartas del dealer se insertarán aquí dinámicamente -->
+            </div>
+        </div>
+
+        <!-- VS Divider -->
+        <div class="vs-divider">VS</div>
+
+        <!-- Player Area -->
+        <div class="player-area">
+            <h3><i class="fas fa-user"></i> TÚ</h3>
+            <div class="cards-container" id="playerCards">
+                <!-- Las cartas del jugador se insertarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Control Panel - ESPECÍFICO DE BLACKJACK -->
+<div class="control-bar">
+    <!-- Betting Controls -->
+    <div class="bet-controls" id="betControls">
+        <div class="compact-bet-header">
+            <button class="toggle-chips-btn" id="toggleChipsBtn">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+            <div class="compact-bet-display">
+                <span class="compact-bet-amount" id="compactBetAmount">$100</span>
+            </div>
+        </div>
+        
+        <div class="chips-section" id="chipsSection">
+            <div class="chips-container">
+                <button class="casino-chip" data-value="10">
+                    <img src="/img/chips/chip-10.png" alt="$10">
+                    <span class="chip-value">$10</span>
+                </button>
+                <button class="casino-chip" data-value="25">
+                    <img src="/img/chips/chip-25.png" alt="$25">
+                    <span class="chip-value">$25</span>
+                </button>
+                <button class="casino-chip" data-value="50">
+                    <img src="/img/chips/chip-50.png" alt="$50">
+                    <span class="chip-value">$50</span>
+                </button>
+                <button class="casino-chip" data-value="100">
+                    <img src="/img/chips/chip-100.png" alt="$100">
+                    <span class="chip-value">$100</span>
+                </button>
+                <button class="casino-chip" data-value="500">
+                    <img src="/img/chips/chip-500.png" alt="$500">
+                    <span class="chip-value">$500</span>
+                </button>
+                <button class="casino-chip" data-value="1000">
+                    <img src="/img/chips/chip-1000.png" alt="$1000">
+                    <span class="chip-value">$1K</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="bet-display-group">
+            <div class="bet-control-wrapper">
+                <button class="bet-control-btn" id="decreaseBetBtn" title="Reducir apuesta">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <div class="current-bet-display">
+                    <input type="number" class="bet-amount-input" id="betAmountInput" min="10" max="10000" step="10" value="100">
+                </div>
+                <button class="bet-control-btn" id="increaseBetBtn" title="Aumentar apuesta">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            <button class="bet-clear-btn" id="clearBtn">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Actions -->
+    <div class="game-actions">
+        <button id="dealBtn" class="action-btn primary">
+            <i class="fas fa-play-circle"></i> REPARTIR
+        </button>
+        <button id="hitBtn" class="action-btn success" disabled>
+            <i class="fas fa-plus-circle"></i> PEDIR
+        </button>
+        <button id="standBtn" class="action-btn warning" disabled>
+            <i class="fas fa-hand-paper"></i> PLANTARSE
+        </button>
+    </div>
+</div>

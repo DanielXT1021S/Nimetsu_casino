@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nimetsu Casino - Iniciar Sesión</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-card">
+      <h1 class="login-title">Nimetsu Casino</h1>
+      <p class="login-subtitle">Inicia sesión o crea tu cuenta para comenzar</p>
+
+      <div class="tab-container">
+        <div class="tab active" data-tab="login">Iniciar Sesión</div>
+        <div class="tab" data-tab="register">Crear Cuenta</div>
+      </div>
+
+      <div class="form-container">
+        <div class="form-section active" id="loginSection">
+          <form id="loginForm">
+            <div class="field">
+              <label for="loginEmail">Correo electrónico</label>
+              <input
+                type="email"
+                id="loginEmail"
+                name="email"
+                placeholder="tu@correo.com"
+                required
+              />
+              <span class="validation-icon">✓</span>
+            </div>
+
+            <div class="field">
+              <label for="loginPassword">Contraseña</label>
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                placeholder="••••••••"
+                required
+              />
+              <button type="button" class="password-toggle" data-target="loginPassword">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+
+            <button type="submit" class="primary-btn">Iniciar sesión</button>
+            <p id="loginError" class="error-msg" style="display:none;"></p>
+          </form>
+
+          <div class="form-footer">
+            <a href="#" id="forgotPassword">¿Olvidaste tu contraseña?</a>
+          </div>
+        </div>
+
+        <div class="form-section" id="registerSection">
+          <form id="registerForm">
+            <div class="field">
+              <label for="regNickname">Nickname</label>
+              <input
+                type="text"
+                id="regNickname"
+                name="nickname"
+                placeholder="Tu apodo en el casino"
+                required
+              />
+              <span class="validation-icon">✓</span>
+            </div>
+
+            <div class="field">
+              <label for="regEmail">Correo electrónico</label>
+              <input
+                type="email"
+                id="regEmail"
+                name="email"
+                placeholder="tu@correo.com"
+                required
+              />
+              <span class="validation-icon">✓</span>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label for="regRut">RUT</label>
+                <input
+                  type="text"
+                  id="regRut"
+                  name="rut"
+                  placeholder="11.111.111-1"
+                  required
+                />
+                <span class="validation-icon">✓</span>
+              </div>
+
+              <div class="field">
+                <label for="regPassword">Contraseña</label>
+                <input
+                  type="password"
+                  id="regPassword"
+                  name="password"
+                  placeholder="Mínimo 6 caracteres"
+                  required
+                />
+                <button type="button" class="password-toggle" data-target="regPassword">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="primary-btn">Registrarme</button>
+            <p id="registerMsg" class="info-msg" style="display:none;"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>

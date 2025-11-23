@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin-dashboard.css">
+</head>
+<body>
+  <div class="admin-container">
+    <%- include('../partials/admin-sidebar') %>
+
+    <main class="admin-content">
+      <%- include('../partials/admin-header', { pageTitle: 'Panel de Administración' }) %>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon users">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3><%= stats.totalUsers || 0 %></h3>
+            <p>Total Usuarios</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon deposits">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1v22"></path>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3><%= stats.totalDeposits || 0 %></h3>
+            <p>Depósitos Totales</p>
+            <small>$<%= (stats.totalDepositAmount || 0).toLocaleString('es-CL') %></small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon withdrawals">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              <polyline points="7 16 2 21 7 21"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3><%= stats.totalWithdrawals || 0 %></h3>
+            <p>Retiros Totales</p>
+            <small>$<%= (stats.totalWithdrawAmount || 0).toLocaleString('es-CL') %></small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon pending">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <h3><%= stats.pendingTransactions || 0 %></h3>
+            <p>Pendientes</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-section">
+        <h2>Resumen del Sistema</h2>
+        <p>Bienvenido al panel de administración de Nimetsu Casino.</p>
+        <p>Utiliza el menú lateral para acceder a las diferentes secciones.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/admin-common.js"></script>
+</body>
+</html>

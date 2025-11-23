@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seleccionar Panel - Nimetsu Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/admin-selector.css">
+</head>
+<body>
+  <div class="selector-container">
+    <div class="selector-card">
+      <div class="logo-section">
+        <h1>Nimetsu Casino</h1>
+        <p class="welcome-text">Bienvenido, <strong id="userNickname">Admin</strong></p>
+        <span class="role-badge" id="roleBadge">Administrador</span>
+      </div>
+
+      <div class="divider"></div>
+
+      <h2 class="selector-title">Selecciona tu panel</h2>
+
+      <div class="panels-grid">
+        <!-- Panel de Usuario -->
+        <a href="/dashboard" class="panel-option user-panel">
+          <div class="panel-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </div>
+          <h3>Vista Usuario</h3>
+        </a>
+
+        <!-- Panel de Administrador -->
+        <a href="/admin/dashboard" class="panel-option admin-panel">
+          <div class="panel-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+          </div>
+          <h3>Vista Administrador</h3>
+        </a>
+      </div>
+
+      <div class="logout-section">
+        <a href="#" id="logoutBtn" class="logout-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Cerrar sesión
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cargar información del usuario desde localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('[SELECTOR] Página cargada');
+      
+      const userStr = localStorage.getItem('nimetsuCasinoUser') || localStorage.getItem('user');
+      const token = localStorage.getItem('nimetsuCasinoToken') || localStorage.getItem('token');
+
+      console.log('[SELECTOR] Token:', token ? 'Presente' : 'Ausente');
+      console.log('[SELECTOR] User:', userStr);
+
+      // Si hay usuario, mostrar su información
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          console.log('[SELECTOR] Usuario parseado:', user);
+          
+          // Actualizar UI
+          document.getElementById('userNickname').textContent = user.nickname || 'Admin';
+          
+          const roleBadge = document.getElementById('roleBadge');
+          if (user.role === 'superadmin') {
+            roleBadge.textContent = 'Super Admin';
+            roleBadge.classList.add('superadmin');
+          } else {
+            roleBadge.textContent = 'Administrador';
+            roleBadge.classList.add('admin');
+          }
+        } catch (err) {
+          console.error('[SELECTOR] Error al parsear usuario:', err);
+        }
+      } else {
+        console.warn('[SELECTOR] No hay información de usuario en localStorage');
+      }
+
+      // Logout handler
+      document.getElementById('logoutBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('[SELECTOR] Logout - limpiando localStorage');
+        localStorage.clear();
+        window.location.href = '/login';
+      });
+
+      console.log('[SELECTOR] Script completado - NO HAY REDIRECCIONES');
+    });
+  </script>
+</body>
+</html>

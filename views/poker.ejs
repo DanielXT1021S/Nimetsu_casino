@@ -1,0 +1,26 @@
+<%- include('partials/game-head', {
+    pageTitle: 'Poker de 3 Cartas',
+    customCSS: null,
+    inlineStyles: null
+}) %>
+
+<div class="casino-fullscreen">
+    <%- include('partials/game-topbar', {
+        gameTitle: '<i class="fas fa-diamond"></i> POKER 3 CARTAS <i class="fas fa-club"></i>',
+        showSettings: false
+    }) %>
+
+    <%- include('poker-content') %>
+
+    <%- include('partials/game-menu', {
+        currentGame: 'poker',
+        showExtraMenuItems: false
+    }) %>
+
+    <%- include('partials/game-ui') %>
+</div>
+
+<%- include('partials/game-footer', {
+    gameScript: '/js/poker.js',
+    additionalScripts: null
+}) %>

@@ -1,0 +1,13 @@
+    <!-- JavaScript del juego -->
+    <% if (typeof gameScript !== 'undefined' && gameScript !== null && gameScript) { %>
+        <script src="<%= gameScript %>"></script>
+    <% } %>
+    
+    <!-- Scripts adicionales (opcional) -->
+    <% if (typeof additionalScripts !== 'undefined' && additionalScripts !== null && additionalScripts) { %>
+        <% additionalScripts.forEach(function(script) { %>
+            <script src="<%= script %>"></script>
+        <% }); %>
+    <% } %>
+</body>
+</html>

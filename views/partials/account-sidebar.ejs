@@ -1,0 +1,129 @@
+<!-- Account Menu Sidebar -->
+<div class="account-sidebar" id="accountSidebar">
+  <div class="account-sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="account-sidebar-content">
+    <!-- Header -->
+    <div class="account-header">
+      <h2>
+        <i class="fas fa-user-circle"></i>
+        Mi Cuenta
+      </h2>
+      <button class="btn-close-sidebar" id="closeSidebar">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- User Profile Section -->
+    <div class="account-section">
+      <div class="account-profile">
+        <div class="profile-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="profile-info">
+          <h3 id="profileName">Usuario</h3>
+          <p id="profileEmail">email@ejemplo.com</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance Section -->
+    <div class="account-section balance-section">
+      <div class="balance-display">
+        <div class="balance-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="balance-info">
+          <span class="balance-title">Saldo Actual</span>
+          <span class="balance-value" id="sidebarBalance">$0.00</span>
+        </div>
+        <button class="btn-refresh-balance" id="refreshBalanceBtn" title="Actualizar saldo">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+      <div class="balance-actions">
+        <button class="btn-balance-action deposit" id="depositBtn">
+          <i class="fas fa-plus-circle"></i>
+          Depositar
+        </button>
+        <button class="btn-balance-action withdraw" id="withdrawBtn">
+          <i class="fas fa-minus-circle"></i>
+          Retirar
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Options -->
+    <div class="account-section">
+      <h4 class="section-title">Opciones de Cuenta</h4>
+      <div class="account-options">
+        <button class="account-option" id="profileSettingsBtn">
+          <i class="fas fa-user-edit"></i>
+          <span>Editar Perfil</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="account-option" id="transactionHistoryBtn">
+          <i class="fas fa-history"></i>
+          <span>Historial de Transacciones</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="account-option" id="gameHistoryBtn">
+          <i class="fas fa-gamepad"></i>
+          <span>Historial de Juegos</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="account-option" id="securityBtn">
+          <i class="fas fa-shield-alt"></i>
+          <span>Seguridad</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="account-option" id="notificationsBtn">
+          <i class="fas fa-bell"></i>
+          <span>Notificaciones</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="account-section stats-section">
+      <h4 class="section-title">Estadísticas</h4>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-gamepad"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="totalGames">0</span>
+            <span class="stat-label">Juegos</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="totalWins">0</span>
+            <span class="stat-label">Victorias</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-gem"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value" id="totalEarnings">$0</span>
+            <span class="stat-label">Ganancias</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="account-section">
+      <button class="btn-logout-sidebar" id="logoutSidebarBtn">
+        <i class="fas fa-sign-out-alt"></i>
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+</div>

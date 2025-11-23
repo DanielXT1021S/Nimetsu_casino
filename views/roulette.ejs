@@ -1,0 +1,27 @@
+<%- include('partials/game-head', {
+    pageTitle: 'Ruleta',
+    customCSS: '/css/roulette-complete.css',
+    inlineStyles: null
+}) %>
+
+<div class="casino-fullscreen">
+    <%- include('partials/game-topbar', {
+        gameTitle: '<i class="fas fa-circle"></i> RULETA <i class="fas fa-circle"></i>',
+        showSettings: true
+    }) %>
+
+    <%- include('roulette-content') %>
+
+    <%- include('partials/game-menu', {
+        currentGame: 'roulette',
+        showExtraMenuItems: false
+    }) %>
+
+    <%- include('partials/game-ui') %>
+</div>
+
+<%- include('partials/game-footer', {
+    gameScript: '/js/roulette.js',
+    additionalScripts: null
+}) %>
+
