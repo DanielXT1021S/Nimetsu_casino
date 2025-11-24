@@ -12,7 +12,10 @@ const {
   renderGames,
   renderSettings,
   getUserDetails,
+  createUser,
+  updateUser,
   adjustUserBalance,
+  getTransactionHistory,
   updateTransactionStatus,
 } = require('../controllers/adminController');
 
@@ -26,7 +29,10 @@ router.get('/settings', mustBeAdminPage, renderSettings);
 
 
 router.get('/api/user/:userId', mustBeAdmin, getUserDetails);
+router.post('/api/user/create', mustBeAdmin, createUser);
+router.post('/api/user/:userId/update', mustBeAdmin, updateUser);
 router.post('/api/user/:userId/balance', mustBeAdmin, adjustUserBalance);
+router.get('/api/transaction/:transactionId/history', mustBeAdmin, getTransactionHistory);
 router.post('/api/transaction/:transactionId/status', mustBeAdmin, updateTransactionStatus);
 
 module.exports = router;

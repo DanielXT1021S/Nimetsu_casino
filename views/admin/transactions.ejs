@@ -16,7 +16,7 @@
       <div class="content-wrapper">
         <!-- Filtros -->
         <div class="filters-section">
-          <h3>🔍 Filtros</h3>
+          <h3>Filtros</h3>
           <form method="GET" action="/admin/transactions" class="filters-form">
             <div class="filter-group">
               <label>Tipo:</label>
@@ -57,7 +57,7 @@
         <!-- Tabla de transacciones -->
         <div class="table-container">
           <div class="table-header">
-            <h2>📋 Lista de Transacciones</h2>
+            <h2>Lista de Transacciones</h2>
           </div>
 
           <table class="data-table">
@@ -90,10 +90,10 @@
                     </td>
                     <td>
                       <span class="type-badge <%= tx.type %>">
-                        <%= tx.type === 'deposit' ? '💰 Depósito' : tx.type === 'withdraw' ? '💸 Retiro' : '⚙️ Ajuste' %>
+                        <%= tx.type === 'deposit' ? 'Depósito' : tx.type === 'withdraw' ? 'Retiro' : 'Ajuste' %>
                       </span>
                     </td>
-                    <td class="amount">$<%= tx.amount.toLocaleString('es-CL') %></td>
+                    <td class="amount">$<%= parseInt(tx.amount).toLocaleString('es-CL') %> <span class="currency-label">CLP</span></td>
                     <td>
                       <span class="status-badge <%= tx.status %>">
                         <%= tx.status %>
@@ -129,6 +129,7 @@
     </main>
   </div>
 
+  <script src="/js/admin-common.js"></script>
   <script src="/js/admin-transactions.js"></script>
 </body>
 </html>

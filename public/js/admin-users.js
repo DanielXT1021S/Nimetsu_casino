@@ -1,3 +1,6 @@
+// admin-users.js - Gestión completa de usuarios
+
+// Ver detalles de usuario
 async function viewUser(userId) {
   const response = await adminFetch(`/admin/api/user/${userId}`);
   
@@ -8,61 +11,373 @@ async function viewUser(userId) {
   
   const data = await response.json();
   
-  if (data.success) {
+  if (data.ok) {
     const user = data.user;
     const transactions = data.transactions || [];
     
-    let html = `
-      <div class="modal-overlay" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
           <h2>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            Detalles de Usuario
+            Detalles de Usuario #${user.userId}
           </h2>
-          <div class="user-details">
-            <p><strong>ID:</strong> ${user.userId}</p>
-            <p><strong>Nickname:</strong> ${user.nickname}</p>
-            <p><strong>Email:</strong> ${user.email}</p>
-            <p><strong>RUT:</strong> ${user.rut || 'N/A'}</p>
-            <p><strong>Balance:</strong> $${user.balance.toLocaleString('es-CL')}</p>
-            <p><strong>Rol:</strong> ${user.role}</p>
-            <p><strong>Registro:</strong> ${formatDate(user.createdAt)}</p>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="info-section">
+            <h3>Información General</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <strong>ID:</strong>
+                <span>${user.userId}</span>
+              </div>
+              <div class="info-item">
+                <strong>Nickname:</strong>
+                <span>${user.nickname}</span>
+              </div>
+              <div class="info-item">
+                <strong>Email:</strong>
+                <span>${user.email}</span>
+              </div>
+              <div class="info-item">
+                <strong>RUT:</strong>
+                <span>${user.rut || 'N/A'}</span>
+              </div>
+              <div class="info-item">
+                <strong>Balance:</strong>
+                <span class="amount">$${user.balance.toLocaleString('es-CL')} CLP</span>
+              </div>
+              <div class="info-item">
+                <strong>Bloqueado:</strong>
+                <span>${user.locked || 0} fichas</span>
+              </div>
+              <div class="info-item">
+                <strong>Rol:</strong>
+                <span class="role-badge ${user.role}">${user.role}</span>
+              </div>
+              <div class="info-item">
+                <strong>Registro:</strong>
+                <span>${formatDate(user.createdAt)}</span>
+              </div>
+            </div>
           </div>
           
-          <h3>Transacciones Recientes</h3>
-          <table class="modal-table">
-            <thead>
-              <tr>
-                <th>Tipo</th>
-                <th>Monto</th>
-                <th>Estado</th>
-                <th>Fecha</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${transactions.length === 0 ? 
-                '<tr><td colspan="4">Sin transacciones</td></tr>' :
-                transactions.map(tx => `
+          <div class="info-section">
+            <h3>Transacciones Recientes</h3>
+            ${transactions.length === 0 ? '<p class="empty-message">Sin transacciones</p>' : `
+              <table class="modal-table">
+                <thead>
                   <tr>
-                    <td>${tx.type}</td>
-                    <td>$${tx.amount.toLocaleString('es-CL')}</td>
-                    <td><span class="status-badge ${tx.status}">${tx.status}</span></td>
-                    <td>${formatDate(tx.createdAt)}</td>
+                    <th>Tipo</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
                   </tr>
-                `).join('')
-              }
-            </tbody>
-          </table>
-          
-          <button class="btn-close" onclick="closeModal()">Cerrar</button>
+                </thead>
+                <tbody>
+                  ${transactions.map(tx => `
+                    <tr>
+                      <td><span class="type-badge ${tx.type}">${tx.type}</span></td>
+                      <td>$${tx.amount.toLocaleString('es-CL')}</td>
+                      <td><span class="status-badge ${tx.status}">${tx.status}</span></td>
+                      <td>${formatDate(tx.createdAt)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            `}
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal()">Cerrar</button>
         </div>
       </div>
     `;
     
-    document.body.insertAdjacentHTML('beforeend', html);
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  } else {
+    alert('Error: ' + data.message);
+  }
+}
+
+// Crear nuevo usuario
+function showCreateUserModal() {
+  const currentUserData = JSON.parse(localStorage.getItem('nimetsuCasinoUser'));
+  const currentUserRole = currentUserData?.role || 'user';
+  const isSuperAdmin = currentUserRole === 'superadmin';
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
+          Crear Nuevo Usuario
+        </h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <form id="createUserForm" class="user-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-nickname">Nickname:</label>
+              <input type="text" id="new-nickname" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="new-email">Email:</label>
+              <input type="email" id="new-email" class="form-control" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-rut">RUT:</label>
+              <input type="text" id="new-rut" class="form-control" placeholder="12.345.678-9">
+            </div>
+            <div class="form-group">
+              <label for="new-password">Contraseña:</label>
+              <input type="password" id="new-password" class="form-control" required minlength="6">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="new-balance">Balance Inicial (fichas):</label>
+              <input type="number" id="new-balance" class="form-control" value="1000" min="0">
+            </div>
+            <div class="form-group">
+              <label for="new-role">Rol:</label>
+              <select id="new-role" class="form-control">
+                <option value="user">Usuario</option>
+                <option value="admin">Administrador</option>
+                ${isSuperAdmin ? '<option value="superadmin">Super Administrador</option>' : ''}
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="createUser()">Crear Usuario</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+// Crear usuario
+async function createUser() {
+  const nickname = document.getElementById('new-nickname').value.trim();
+  const email = document.getElementById('new-email').value.trim();
+  const rut = document.getElementById('new-rut').value.trim();
+  const password = document.getElementById('new-password').value;
+  const balance = parseInt(document.getElementById('new-balance').value) || 1000;
+  const role = document.getElementById('new-role').value;
+  
+  if (!nickname || !email || !password) {
+    alert('Por favor, completa todos los campos obligatorios');
+    return;
+  }
+  
+  if (password.length < 6) {
+    alert('La contraseña debe tener al menos 6 caracteres');
+    return;
+  }
+  
+  const response = await adminFetch('/admin/api/user/create', {
+    method: 'POST',
+    body: JSON.stringify({ nickname, email, rut, password, balance, role })
+  });
+  
+  if (!response) {
+    alert('Error al crear usuario');
+    return;
+  }
+  
+  const data = await response.json();
+  
+  if (data.ok) {
+    alert('Usuario creado exitosamente');
+    closeModal();
+    refreshPage();
+  } else {
+    alert('Error: ' + data.message);
+  }
+}
+
+// Editar usuario
+async function editUser(userId) {
+  const response = await adminFetch(`/admin/api/user/${userId}`);
+  
+  if (!response) {
+    alert('Error al cargar datos del usuario');
+    return;
+  }
+  
+  const data = await response.json();
+  
+  if (!data.ok) {
+    alert('Error: ' + data.message);
+    return;
+  }
+  
+  const user = data.user;
+  const currentUserData = JSON.parse(localStorage.getItem('nimetsuCasinoUser'));
+  const currentUserRole = currentUserData?.role || 'user';
+  
+  // Verificar permisos
+  const canEditRole = (currentUserRole === 'superadmin') || 
+                      (currentUserRole === 'admin' && user.role !== 'superadmin');
+  
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Editar Usuario #${user.userId}
+        </h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <form id="editUserForm" class="user-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-nickname">Nickname:</label>
+              <input type="text" id="edit-nickname" class="form-control" value="${user.nickname}" required>
+            </div>
+            <div class="form-group">
+              <label for="edit-email">Email:</label>
+              <input type="email" id="edit-email" class="form-control" value="${user.email}" required>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-rut">RUT:</label>
+              <input type="text" id="edit-rut" class="form-control" value="${user.rut || ''}" placeholder="12.345.678-9">
+            </div>
+            <div class="form-group">
+              <label for="edit-balance">Balance (fichas):</label>
+              <input type="number" id="edit-balance" class="form-control" value="${user.balance || 0}" min="0">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edit-locked">Bloqueado (fichas):</label>
+              <input type="number" id="edit-locked" class="form-control" value="${user.locked || 0}" min="0">
+            </div>
+            <div class="form-group">
+              <label for="edit-role">Rol:</label>
+              <select id="edit-role" class="form-control" ${!canEditRole ? 'disabled' : ''}>
+                <option value="user" ${user.role === 'user' ? 'selected' : ''}>Usuario</option>
+                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Administrador</option>
+                ${currentUserRole === 'superadmin' ? `<option value="superadmin" ${user.role === 'superadmin' ? 'selected' : ''}>Super Administrador</option>` : ''}
+              </select>
+              ${!canEditRole ? '<small style="color: #f59e0b;">No tienes permisos para cambiar este rol</small>' : ''}
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group full-width">
+              <label for="edit-password">Nueva Contraseña (dejar vacío para no cambiar):</label>
+              <input type="password" id="edit-password" class="form-control" minlength="6">
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn-primary" onclick="updateUser(${userId})">Guardar Cambios</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+}
+
+// Actualizar usuario
+async function updateUser(userId) {
+  const nickname = document.getElementById('edit-nickname').value.trim();
+  const email = document.getElementById('edit-email').value.trim();
+  const rut = document.getElementById('edit-rut').value.trim();
+  const password = document.getElementById('edit-password').value;
+  const balance = parseInt(document.getElementById('edit-balance').value) || 0;
+  const locked = parseInt(document.getElementById('edit-locked').value) || 0;
+  const role = document.getElementById('edit-role').value;
+  
+  if (!nickname || !email) {
+    alert('Nickname y email son obligatorios');
+    return;
+  }
+  
+  if (password && password.length < 6) {
+    alert('La contraseña debe tener al menos 6 caracteres');
+    return;
+  }
+  
+  const updateData = {
+    nickname,
+    email,
+    rut,
+    balance,
+    locked,
+    role
+  };
+  
+  if (password) {
+    updateData.password = password;
+  }
+  
+  const response = await adminFetch(`/admin/api/user/${userId}/update`, {
+    method: 'POST',
+    body: JSON.stringify(updateData)
+  });
+  
+  if (!response) {
+    alert('Error al actualizar usuario');
+    return;
+  }
+  
+  const data = await response.json();
+  
+  if (data.ok) {
+    alert('Usuario actualizado exitosamente');
+    closeModal();
+    refreshPage();
   } else {
     alert('Error: ' + data.message);
   }

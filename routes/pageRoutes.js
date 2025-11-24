@@ -22,9 +22,6 @@ router.get('/blackjack', authRequiredPage, renderBlackjack);
 router.get('/roulette', authRequiredPage, renderRoulette);
 router.get('/slots', authRequiredPage, renderSlots);
 router.get('/poker', authRequiredPage, renderPoker);
-router.get('/template-game', authRequiredPage, (req, res) => {
-  res.render('_TEMPLATE_GAME');
-});
 
 router.get('/', redirectHome);
 

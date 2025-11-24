@@ -207,29 +207,59 @@ async function getUserDetails(req, res) {
   }
 }
 
-async function adjustUserBalance(req, res) {
+async function createUser(req, res) {
   try {
-    const { userId } = req.params;
-    const { amount, reason } = req.body;
+    const { nickname, email, rut, password, balance, role } = req.body;
+    const adminRole = req.user?.role || 'user';
 
-    if (!amount || isNaN(amount)) {
-      return res.status(400).json({ ok: false, message: 'Monto inválido' });
+    if (!nickname || !email || !password) {
+      return res.status(400).json({ ok: false, message: 'Faltan datos obligatorios' });
     }
+
+    if (password.length < 6) {
+      return res.status(400).json({ ok: false, message: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    // Verificar permisos para asignar roles
+    if (role === 'superadmin' && adminRole !== 'superadmin') {
+      return res.status(403).json({ ok: false, message: 'Solo un superadmin puede crear otros superadmins' });
+    }
+
+    if (role === 'admin' && adminRole !== 'superadmin' && adminRole !== 'admin') {
+      return res.status(403).json({ ok: false, message: 'No tienes permisos para crear administradores' });
+    }
+
+    // Verificar email único
+    const [existingEmail] = await pool.query('SELECT userId FROM users WHERE email = ?', [email]);
+    if (existingEmail.length > 0) {
+      return res.status(409).json({ ok: false, message: 'El email ya está registrado' });
+    }
+
+    // Verificar RUT único si se proporciona
+    if (rut) {
+      const [existingRut] = await pool.query('SELECT userId FROM users WHERE rut = ?', [rut]);
+      if (existingRut.length > 0) {
+        return res.status(409).json({ ok: false, message: 'El RUT ya está registrado' });
+      }
+    }
+
+    const bcrypt = require('bcryptjs');
+    const passHash = await bcrypt.hash(password, 12);
 
     const connection = await pool.getConnection();
     await connection.beginTransaction();
 
     try {
-     
-      await connection.query(
-        'UPDATE balances SET balance = balance + ? WHERE userId = ?',
-        [amount, userId]
+      const [result] = await connection.query(
+        'INSERT INTO users (nickname, email, passHash, rut, role) VALUES (?, ?, ?, ?, ?)',
+        [nickname, email, passHash, rut || null, role || 'user']
       );
 
+      const userId = result.insertId;
+
       await connection.query(
-        `INSERT INTO transactions (userId, type, amount, status, notes, createdAt)
-         VALUES (?, 'adjustment', ?, 'completed', ?, NOW())`,
-        [userId, Math.abs(amount), reason || 'Ajuste manual de administrador']
+        'INSERT INTO balances (userId, balance, locked) VALUES (?, ?, 0)',
+        [userId, balance || 1000]
       );
 
       await connection.commit();
@@ -237,7 +267,8 @@ async function adjustUserBalance(req, res) {
 
       return res.json({
         ok: true,
-        message: 'Balance ajustado correctamente',
+        message: 'Usuario creado exitosamente',
+        userId,
       });
     } catch (err) {
       await connection.rollback();
@@ -245,38 +276,337 @@ async function adjustUserBalance(req, res) {
       throw err;
     }
   } catch (err) {
+    console.error('Error creating user:', err);
+    return res.status(500).json({ ok: false, message: 'Error al crear usuario' });
+  }
+}
+
+async function updateUser(req, res) {
+  try {
+    const { userId } = req.params;
+    const { nickname, email, rut, password, balance, locked, role } = req.body;
+    const adminRole = req.user?.role || 'user';
+
+    // Obtener usuario actual
+    const [[currentUser]] = await pool.query('SELECT role FROM users WHERE userId = ?', [userId]);
+    if (!currentUser) {
+      return res.status(404).json({ ok: false, message: 'Usuario no encontrado' });
+    }
+
+    // Verificar permisos para modificar roles
+    if (role && role !== currentUser.role) {
+      if (currentUser.role === 'superadmin' && adminRole !== 'superadmin') {
+        return res.status(403).json({ ok: false, message: 'No puedes modificar un superadministrador' });
+      }
+
+      if (role === 'superadmin' && adminRole !== 'superadmin') {
+        return res.status(403).json({ ok: false, message: 'Solo un superadmin puede asignar el rol de superadmin a otros usuarios' });
+      }
+
+      if (role === 'admin' && adminRole !== 'superadmin' && adminRole !== 'admin') {
+        return res.status(403).json({ ok: false, message: 'No tienes permisos para asignar el rol de administrador' });
+      }
+    }
+
+    // Verificar email único
+    if (email) {
+      const [existingEmail] = await pool.query('SELECT userId FROM users WHERE email = ? AND userId != ?', [email, userId]);
+      if (existingEmail.length > 0) {
+        return res.status(409).json({ ok: false, message: 'El email ya está en uso' });
+      }
+    }
+
+    // Verificar RUT único
+    if (rut) {
+      const [existingRut] = await pool.query('SELECT userId FROM users WHERE rut = ? AND userId != ?', [rut, userId]);
+      if (existingRut.length > 0) {
+        return res.status(409).json({ ok: false, message: 'El RUT ya está en uso' });
+      }
+    }
+
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      // Actualizar datos de usuario
+      let updateFields = [];
+      let updateValues = [];
+
+      if (nickname) {
+        updateFields.push('nickname = ?');
+        updateValues.push(nickname);
+      }
+      if (email) {
+        updateFields.push('email = ?');
+        updateValues.push(email);
+      }
+      if (rut !== undefined) {
+        updateFields.push('rut = ?');
+        updateValues.push(rut || null);
+      }
+      if (role) {
+        updateFields.push('role = ?');
+        updateValues.push(role);
+      }
+      if (password) {
+        if (password.length < 6) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({ ok: false, message: 'La contraseña debe tener al menos 6 caracteres' });
+        }
+        const bcrypt = require('bcryptjs');
+        const passHash = await bcrypt.hash(password, 12);
+        updateFields.push('passHash = ?');
+        updateValues.push(passHash);
+      }
+
+      if (updateFields.length > 0) {
+        updateValues.push(userId);
+        await connection.query(
+          `UPDATE users SET ${updateFields.join(', ')} WHERE userId = ?`,
+          updateValues
+        );
+      }
+
+      // Actualizar balance
+      if (balance !== undefined || locked !== undefined) {
+        let balanceFields = [];
+        let balanceValues = [];
+
+        if (balance !== undefined) {
+          balanceFields.push('balance = ?');
+          balanceValues.push(balance);
+        }
+        if (locked !== undefined) {
+          balanceFields.push('locked = ?');
+          balanceValues.push(locked);
+        }
+
+        balanceValues.push(userId);
+        await connection.query(
+          `UPDATE balances SET ${balanceFields.join(', ')} WHERE userId = ?`,
+          balanceValues
+        );
+      }
+
+      await connection.commit();
+      connection.release();
+
+      return res.json({
+        ok: true,
+        message: 'Usuario actualizado exitosamente',
+      });
+    } catch (err) {
+      await connection.rollback();
+      connection.release();
+      throw err;
+    }
+  } catch (err) {
+    console.error('Error updating user:', err);
+    return res.status(500).json({ ok: false, message: 'Error al actualizar usuario' });
+  }
+}
+
+async function adjustUserBalance(req, res) {
+  try {
+    const { userId } = req.params;
+    const { amount, reason } = req.body;
+
+    if (!amount || isNaN(amount)) {
+      return res.status(400).json({ success: false, message: 'Monto inválido' });
+    }
+
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      // Determinar el tipo de transacción según si es positivo o negativo
+      const transactionType = parseFloat(amount) >= 0 ? 'deposit' : 'withdraw';
+      const absoluteAmount = Math.abs(amount);
+     
+      await connection.query(
+        'UPDATE balances SET balance = balance + ? WHERE userId = ?',
+        [amount, userId]
+      );
+
+      await connection.query(
+        `INSERT INTO transactions (userId, type, method, amount, fichas, status, notes, createdAt)
+         VALUES (?, ?, 'manual_adjustment', ?, ?, 'completed', ?, NOW())`,
+        [userId, transactionType, absoluteAmount, absoluteAmount, reason || 'Ajuste manual de administrador']
+      );
+
+      // Obtener el nuevo balance
+      const [balanceResult] = await connection.query(
+        'SELECT balance FROM balances WHERE userId = ?',
+        [userId]
+      );
+
+      await connection.commit();
+      connection.release();
+
+      return res.json({
+        success: true,
+        message: 'Balance ajustado correctamente',
+        newBalance: balanceResult[0]?.balance || 0
+      });
+    } catch (err) {
+      await connection.rollback();
+      connection.release();
+      throw err;
+    }
+  } catch (err) {
+    console.error('Error al ajustar balance:', err);
+    return res.status(500).json({ success: false, message: 'Error al ajustar balance' });
+  }
+}
+
+async function getTransactionHistory(req, res) {
+  try {
+    const { transactionId } = req.params;
+
+    const [history] = await pool.query(`
+      SELECT
+        tsh.historyId,
+        tsh.transactionId,
+        u.userId,
+        u.nickname,
+        u.email,
+        t.type AS transaction_type,
+        t.method AS payment_method,
+        t.amount,
+        t.fichas,
+        t.status AS current_status,
+        tsh.old_status,
+        tsh.new_status,
+        tsh.reason,
+        tsh.createdAt AS status_changed_at,
+        admin.nickname AS changed_by_name
+      FROM transaction_status_history AS tsh
+      INNER JOIN transactions AS t
+        ON tsh.transactionId = t.transactionId
+      INNER JOIN users AS u
+        ON t.userId = u.userId
+      LEFT JOIN users AS admin
+        ON tsh.changed_by = admin.userId
+      WHERE tsh.transactionId = ?
+      ORDER BY tsh.createdAt DESC
+    `, [transactionId]);
+
+    const [transaction] = await pool.query(`
+      SELECT 
+        t.*,
+        u.nickname,
+        u.email,
+        u.rut
+      FROM transactions t
+      LEFT JOIN users u ON t.userId = u.userId
+      WHERE t.transactionId = ?
+    `, [transactionId]);
+
+    if (transaction.length === 0) {
+      return res.status(404).json({ ok: false, message: 'Transacción no encontrada' });
+    }
+
+    return res.json({
+      ok: true,
+      transaction: transaction[0],
+      history,
+    });
+  } catch (err) {
     
-    return res.status(500).json({ ok: false, message: 'Error al ajustar balance' });
+    return res.status(500).json({ ok: false, message: 'Error al obtener historial' });
   }
 }
 
 async function updateTransactionStatus(req, res) {
   try {
     const { transactionId } = req.params;
-    const { status, notes } = req.body;
+    const { status, reason, confirmedAmount } = req.body;
 
     const validStatuses = ['pending', 'processing', 'completed', 'rejected', 'cancelled'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ ok: false, message: 'Estado inválido' });
     }
 
-    await pool.query(
-      `UPDATE transactions 
-       SET status = ?, notes = CONCAT(COALESCE(notes, ''), '\n', ?)
-       WHERE transactionId = ?`,
-      [status, notes || `Estado cambiado a ${status} por admin`, transactionId]
+    const [[currentTx]] = await pool.query(
+      'SELECT * FROM transactions WHERE transactionId = ?',
+      [transactionId]
     );
 
-    await pool.query(
-      `INSERT INTO transaction_status_history (transactionId, oldStatus, newStatus, changedBy, notes)
-       VALUES (?, (SELECT status FROM transactions WHERE transactionId = ?), ?, ?, ?)`,
-      [transactionId, transactionId, status, req.user?.userId || 0, notes]
-    );
+    if (!currentTx) {
+      return res.status(404).json({ ok: false, message: 'Transacción no encontrada' });
+    }
 
-    return res.json({
-      ok: true,
-      message: 'Estado actualizado correctamente',
-    });
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+      await connection.query(
+        `UPDATE transactions 
+         SET status = ?, notes = CONCAT(COALESCE(notes, ''), '\n', ?)
+         WHERE transactionId = ?`,
+        [status, reason || `Estado cambiado a ${status} por admin`, transactionId]
+      );
+
+      await connection.query(
+        `INSERT INTO transaction_status_history (transactionId, old_status, new_status, changed_by, reason)
+         VALUES (?, ?, ?, ?, ?)`,
+        [transactionId, currentTx.status, status, req.user?.userId || null, reason || `Estado cambiado a ${status} por admin`]
+      );
+
+      if (status === 'completed' && currentTx.type === 'deposit' && confirmedAmount) {
+        const amountToAdd = parseFloat(confirmedAmount);
+        const fichasToAdd = Math.floor(amountToAdd / 100);
+
+        await connection.query(
+          `INSERT INTO balances (userId, balance, locked)
+           VALUES (?, ?, 0)
+           ON DUPLICATE KEY UPDATE balance = balance + ?`,
+          [currentTx.userId, fichasToAdd, fichasToAdd]
+        );
+
+        await connection.query(
+          `UPDATE transactions SET fichas = ? WHERE transactionId = ?`,
+          [fichasToAdd, transactionId]
+        );
+      }
+
+      if (status === 'completed' && currentTx.type === 'withdraw') {
+        const fichasToDeduct = currentTx.fichas || 0;
+        
+        await connection.query(
+          `UPDATE balances 
+           SET balance = balance - ?,
+               locked = locked - ?
+           WHERE userId = ?`,
+          [fichasToDeduct, fichasToDeduct, currentTx.userId]
+        );
+      }
+
+      if (status === 'rejected' && currentTx.type === 'withdraw') {
+        const fichasToUnlock = currentTx.fichas || 0;
+        
+        await connection.query(
+          `UPDATE balances 
+           SET locked = locked - ?
+           WHERE userId = ?`,
+          [fichasToUnlock, currentTx.userId]
+        );
+      }
+
+      await connection.commit();
+      connection.release();
+
+      return res.json({
+        ok: true,
+        success: true,
+        message: 'Estado actualizado correctamente',
+      });
+    } catch (err) {
+      await connection.rollback();
+      connection.release();
+      throw err;
+    }
   } catch (err) {
     
     return res.status(500).json({ ok: false, message: 'Error al actualizar estado' });
@@ -291,6 +621,9 @@ module.exports = {
   renderGames,
   renderSettings,
   getUserDetails,
+  createUser,
+  updateUser,
   adjustUserBalance,
+  getTransactionHistory,
   updateTransactionStatus,
 };
