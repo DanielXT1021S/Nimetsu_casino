@@ -1,5 +1,6 @@
 const mercadopago = require('../config/mercadoPago');
-const pool = require('../config/db'); 
+const pool = require('../config/db');
+const balanceService = require('../services/balanceService');
 const { Preference, Payment } = require('mercadopago');
 
 const RECHARGE_PACKAGES = {
@@ -129,10 +130,7 @@ exports.webhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        await pool.query(
-          'UPDATE balances SET balance = balance + ? WHERE userId = ?',
-          [totalFichas, userId]
-        );
+        await balanceService.updateBalance(userId, totalFichas);
 
         await pool.query(
           `UPDATE transactions 

@@ -476,7 +476,21 @@ function setupEventListeners() {
 // ========================================
 // LÓGICA DEL JUEGO
 // ========================================
+function resetGameState() {
+    // Limpiar las manos de la partida anterior
+    gameState.playerHand = [];
+    gameState.dealerHand = [];
+    gameState.playerValue = 0;
+    gameState.dealerValue = 0;
+    gameState.gameInProgress = false;
+    gameState.gameResult = null;
+    console.log('[BLACKJACK] Estado limpiado');
+}
+
 async function dealHand() {
+    // Limpiar estado anterior
+    resetGameState();
+    
     const betAmount = gameState.currentBet || 100;
 
     if (betAmount <= 0) {
@@ -643,6 +657,7 @@ async function standHand() {
                 
                 // Mostrar resultado después de todas las animaciones
                 setTimeout(() => {
+                    updateHandValues();
                     updateBalance();
                     displayResult(data);
                     updateButtonStates();
@@ -650,6 +665,7 @@ async function standHand() {
             } else {
                 // Sin cartas adicionales, mostrar resultado inmediatamente
                 setTimeout(() => {
+                    updateHandValues();
                     updateBalance();
                     displayResult(data);
                     updateButtonStates();
@@ -820,8 +836,24 @@ function updateHandValues() {
     const dealerValueEl = document.getElementById('dealerScore');
     const playerValueEl = document.getElementById('playerScore');
 
-    if (dealerValueEl) dealerValueEl.textContent = gameState.dealerValue || '0';
+    // Si el juego está en progreso, mostrar solo la primera carta del dealer
+    let visibleDealerValue = gameState.dealerValue;
+    if (gameState.gameInProgress && gameState.dealerHand.length > 0) {
+        visibleDealerValue = calculateDealerVisibleValue();
+    }
+
+    if (dealerValueEl) dealerValueEl.textContent = visibleDealerValue || '0';
     if (playerValueEl) playerValueEl.textContent = gameState.playerValue || '0';
+}
+
+function calculateDealerVisibleValue() {
+    // Calcula el valor visible del dealer (solo primera carta durante el juego)
+    if (gameState.dealerHand.length === 0) return 0;
+    
+    const card = gameState.dealerHand[0];
+    if (card.rank === 'A') return 11;
+    if (card.rank === 'K' || card.rank === 'Q' || card.rank === 'J') return 10;
+    return parseInt(card.rank);
 }
 
 function displayResult(data) {
@@ -833,18 +865,26 @@ function displayResult(data) {
             showWinOverlay(data.winAmount, message);
             break;
         case 'win':
-            message = `¡GANASTE LA MANO!`;
+            if (data.dealerValue > 21) {
+                message = `¡EL DEALER SE PASÓ!`;
+            } else {
+                message = `¡GANASTE LA MANO!`;
+            }
             showWinOverlay(data.winAmount, message);
             break;
         case 'push':
             showToast(`EMPATE - Apuesta devuelta ($${data.winAmount})`, 'info');
             break;
         case 'lose':
-            message = `Perdiste la mano`;
+            if (data.playerValue > 21) {
+                message = 'Te pasaste de 21';
+            } else {
+                message = 'Perdiste la mano';
+            }
             showLoseOverlay(gameState.currentBet, message);
             break;
         case 'bust':
-            message = `Te pasaste de 21`;
+            message = 'Te pasaste de 21';
             showLoseOverlay(gameState.currentBet, message);
             break;
     }

@@ -1,20 +1,13 @@
 'use strict';
 
 const pool = require('../config/db');
+const balanceService = require('../services/balanceService');
 
 async function getProfile(req, res) {
   try {
     const { userId } = req.user;
 
-    const [balanceRows] = await pool.query(
-      'SELECT balance FROM balances WHERE userId = ? LIMIT 1',
-      [userId]
-    );
-
-    let balance = 0;
-    if (balanceRows.length > 0) {
-      balance = balanceRows[0].balance;
-    }
+    const balance = await balanceService.getOrCreateBalance(userId);
 
     const [statsRows] = await pool.query(
       `SELECT 

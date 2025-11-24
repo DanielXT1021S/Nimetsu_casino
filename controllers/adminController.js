@@ -1,6 +1,7 @@
 'use strict';
 
 const pool = require('../config/db');
+const balanceService = require('../services/balanceService');
 
 
 async function renderAdminSelector(req, res) {
@@ -257,10 +258,7 @@ async function createUser(req, res) {
 
       const userId = result.insertId;
 
-      await connection.query(
-        'INSERT INTO balances (userId, balance, locked) VALUES (?, ?, 0)',
-        [userId, balance || 1000]
-      );
+      await balanceService.createBalance(userId, balance || 1000);
 
       await connection.commit();
       connection.release();
@@ -370,23 +368,12 @@ async function updateUser(req, res) {
 
       // Actualizar balance
       if (balance !== undefined || locked !== undefined) {
-        let balanceFields = [];
-        let balanceValues = [];
-
         if (balance !== undefined) {
-          balanceFields.push('balance = ?');
-          balanceValues.push(balance);
+          await balanceService.setBalance(userId, balance);
         }
         if (locked !== undefined) {
-          balanceFields.push('locked = ?');
-          balanceValues.push(locked);
+          await balanceService.setLocked(userId, locked);
         }
-
-        balanceValues.push(userId);
-        await connection.query(
-          `UPDATE balances SET ${balanceFields.join(', ')} WHERE userId = ?`,
-          balanceValues
-        );
       }
 
       await connection.commit();
@@ -424,10 +411,7 @@ async function adjustUserBalance(req, res) {
       const transactionType = parseFloat(amount) >= 0 ? 'deposit' : 'withdraw';
       const absoluteAmount = Math.abs(amount);
      
-      await connection.query(
-        'UPDATE balances SET balance = balance + ? WHERE userId = ?',
-        [amount, userId]
-      );
+      await balanceService.updateBalance(userId, amount);
 
       await connection.query(
         `INSERT INTO transactions (userId, type, method, amount, fichas, status, notes, createdAt)
@@ -436,10 +420,7 @@ async function adjustUserBalance(req, res) {
       );
 
       // Obtener el nuevo balance
-      const [balanceResult] = await connection.query(
-        'SELECT balance FROM balances WHERE userId = ?',
-        [userId]
-      );
+      const newBalance = await balanceService.getBalance(userId);
 
       await connection.commit();
       connection.release();
@@ -447,7 +428,7 @@ async function adjustUserBalance(req, res) {
       return res.json({
         success: true,
         message: 'Balance ajustado correctamente',
-        newBalance: balanceResult[0]?.balance || 0
+        newBalance: newBalance || 0
       });
     } catch (err) {
       await connection.rollback();
@@ -558,12 +539,8 @@ async function updateTransactionStatus(req, res) {
         const amountToAdd = parseFloat(confirmedAmount);
         const fichasToAdd = Math.floor(amountToAdd / 100);
 
-        await connection.query(
-          `INSERT INTO balances (userId, balance, locked)
-           VALUES (?, ?, 0)
-           ON DUPLICATE KEY UPDATE balance = balance + ?`,
-          [currentTx.userId, fichasToAdd, fichasToAdd]
-        );
+        await balanceService.getOrCreateBalance(currentTx.userId);
+        await balanceService.updateBalance(currentTx.userId, fichasToAdd);
 
         await connection.query(
           `UPDATE transactions SET fichas = ? WHERE transactionId = ?`,
@@ -574,24 +551,14 @@ async function updateTransactionStatus(req, res) {
       if (status === 'completed' && currentTx.type === 'withdraw') {
         const fichasToDeduct = currentTx.fichas || 0;
         
-        await connection.query(
-          `UPDATE balances 
-           SET balance = balance - ?,
-               locked = locked - ?
-           WHERE userId = ?`,
-          [fichasToDeduct, fichasToDeduct, currentTx.userId]
-        );
+        await balanceService.updateBalance(currentTx.userId, -fichasToDeduct);
+        await balanceService.updateLocked(currentTx.userId, -fichasToDeduct);
       }
 
       if (status === 'rejected' && currentTx.type === 'withdraw') {
         const fichasToUnlock = currentTx.fichas || 0;
         
-        await connection.query(
-          `UPDATE balances 
-           SET locked = locked - ?
-           WHERE userId = ?`,
-          [fichasToUnlock, currentTx.userId]
-        );
+        await balanceService.updateLocked(currentTx.userId, -fichasToUnlock);
       }
 
       await connection.commit();

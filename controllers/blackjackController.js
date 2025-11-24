@@ -1,6 +1,5 @@
 'use strict';
 
-const pool = require('../config/db');
 const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
@@ -10,7 +9,8 @@ async function initGame(req, res) {
     const { userId } = req.user;
     const { bet } = req.body;
 
-    const betValidation = gameFactory.validateBet('blackjack', bet);
+    const game = gameFactory.createGame('blackjack');
+    const betValidation = game.validateBet(bet);
     if (!betValidation.valid) {
       return res.status(400).json({
         ok: false,
@@ -18,19 +18,7 @@ async function initGame(req, res) {
       });
     }
 
-    const [balanceRows] = await pool.query(
-      'SELECT balance FROM balances WHERE userId = ? LIMIT 1',
-      [userId]
-    );
-
-    if (balanceRows.length === 0) {
-      return res.status(404).json({
-        ok: false,
-        message: 'Balance no encontrado',
-      });
-    }
-
-    const currentBalance = balanceRows[0].balance;
+    const currentBalance = await balanceService.getOrCreateBalance(userId);
 
     if (currentBalance < bet) {
       return res.status(400).json({
@@ -191,12 +179,27 @@ async function stand(req, res) {
       });
     }
 
+    console.log(`[BLACKJACK STAND] Jugador: ${getHandDescription(playerHand)} | Dealer: ${getHandDescription(dealerHand)}`);
+    
     let dealer = [...dealerHand];
     let dealerValue = calculateHand(dealer);
 
+    console.log(`[BLACKJACK] Dealer comienza con: ${getHandDescription(dealer)} = ${dealerValue}`);
+
+    // El dealer debe pedir cartas mientras tenga 16 o menos (Hard rule: 17+)
     while (dealerValue < 17) {
-      dealer.push(drawCards(1)[0]);
+      const newCard = drawCards(1)[0];
+      dealer.push(newCard);
       dealerValue = calculateHand(dealer);
+      
+      console.log(`[BLACKJACK] Dealer pidió: ${newCard.rank}${newCard.suit} → Mano: ${getHandDescription(dealer)} = ${dealerValue}`);
+    }
+    
+    // Una vez que dealer tiene 17 o más, se planta
+    console.log(`[BLACKJACK] Dealer se planta con ${dealerValue} (${getHandDescription(dealer)})`);
+    
+    if (dealerValue > 21) {
+      console.log(`[BLACKJACK] ¡DEALER BUST! (${dealerValue})`);
     }
 
     const playerValue = calculateHand(playerHand);
@@ -220,6 +223,26 @@ async function stand(req, res) {
     if (result === 'win' || result === 'blackjack') gameResult = 'win';
     else if (result === 'push') gameResult = 'tie';
 
+    // Generar mensaje de resultado descriptivo
+    let resultMessage = 'Dealer gana';
+    if (result === 'blackjack') {
+      resultMessage = '¡Blackjack Natural!';
+    } else if (result === 'win') {
+      if (dealerValue > 21) {
+        resultMessage = '¡El dealer se pasó! ¡Ganaste!';
+      } else {
+        resultMessage = '¡Ganaste la mano!';
+      }
+    } else if (result === 'push') {
+      resultMessage = 'Empate - Ambos tienen la misma puntuación';
+    } else if (result === 'lose') {
+      if (playerValue > 21) {
+        resultMessage = 'Te pasaste de 21';
+      } else {
+        resultMessage = 'Perdiste - El dealer tiene mejor mano';
+      }
+    }
+
     await saveGameResult(
       userId,
       'blackjack',
@@ -231,7 +254,9 @@ async function stand(req, res) {
         dealerHand: dealer,
         playerValue,
         dealerValue,
-        resultMessage: result === 'blackjack' ? 'Blackjack!' : result === 'win' ? 'Ganaste' : result === 'push' ? 'Empate' : result === 'lose' ? 'Perdiste' : 'Dealer gana',
+        resultMessage,
+        dealerBust: dealerValue > 21,
+        playerBust: playerValue > 21,
         isBlackjack: result === 'blackjack'
       }
     );
@@ -244,9 +269,10 @@ async function stand(req, res) {
       dealerHand: dealer,
       winAmount,
       newBalance,
+      resultMessage,
     });
   } catch (err) {
-    
+    console.error('Stand error:', err);
     return res.status(500).json({
       ok: false,
       message: 'Error al procesar la jugada',
@@ -272,6 +298,7 @@ function calculateHand(hand) {
   let total = 0;
   let aces = 0;
 
+  // Contar todas las cartas y los ases
   for (let card of hand) {
     if (card.rank === 'A') {
       aces++;
@@ -279,12 +306,16 @@ function calculateHand(hand) {
     } else if (card.rank === 'K' || card.rank === 'Q' || card.rank === 'J') {
       total += 10;
     } else {
-      total += parseInt(card.rank);
+      const numValue = parseInt(card.rank);
+      if (!isNaN(numValue)) {
+        total += numValue;
+      }
     }
   }
 
+  // Ajustar ases de 11 a 1 si el total se pasa de 21
   while (total > 21 && aces > 0) {
-    total -= 10;
+    total -= 10;  // Cambiar un as de 11 a 1 (resta 10 del total)
     aces--;
   }
 
@@ -301,16 +332,25 @@ function isBlackjack(hand) {
   return (values[0] + values[1] === 21);
 }
 
+function getHandDescription(hand) {
+  // Función helper para debugging
+  return hand.map(card => `${card.rank}${card.suit}`).join(', ');
+}
+
 function determineWinner(playerValue, dealerValue, playerHand) {
+  // Si el jugador se pasó, pierde siempre
   if (playerValue > 21) {
     return 'lose';
   }
 
+  // Si el dealer se pasó, el jugador gana
   if (dealerValue > 21) {
     return 'win';
   }
 
+  // Comparar valores cuando ambos están dentro de 21
   if (playerValue > dealerValue) {
+    // Blackjack natural (As + 10) solo con 2 cartas
     if (playerValue === 21 && playerHand.length === 2) {
       return 'blackjack';
     }
@@ -318,6 +358,7 @@ function determineWinner(playerValue, dealerValue, playerHand) {
   } else if (playerValue === dealerValue) {
     return 'push';
   } else {
+    // dealer tiene más que el jugador
     return 'lose';
   }
 }

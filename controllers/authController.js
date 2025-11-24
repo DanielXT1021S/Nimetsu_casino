@@ -3,6 +3,7 @@
 const bcrypt = require('bcryptjs');
 const jwt    = require('jsonwebtoken');
 const pool   = require('../config/db');
+const balanceService = require('../services/balanceService');
 
 function createToken(user) {
   return jwt.sign(
@@ -76,10 +77,7 @@ async function register(req, res) {
 
     const userId = result.insertId;
 
-    await pool.query(
-      'INSERT INTO balances (userId, balance, locked) VALUES (?, 1000, 0)',
-      [userId]
-    );
+    await balanceService.createBalance(userId, 1000);
 
     const user = {
       userId,

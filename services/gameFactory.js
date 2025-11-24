@@ -1,288 +1,173 @@
-// services/gameFactory.js
 'use strict';
 
+const SlotsGame = require('./games/SlotsGame');
+const BlackjackGame = require('./games/BlackjackGame');
+const RouletteGame = require('./games/RouletteGame');
+const PokerGame = require('./games/PokerGame');
+const CrapsGame = require('./games/CrapsGame');
+const BaccaratGame = require('./games/BaccaratGame');
+
+/**
+ * GameFactory - Implementa el patrón Factory Method
+ * Responsable de crear instancias de juegos específicos
+ * Utiliza Singleton para mantener una única instancia de cada juego
+ */
 class GameFactory {
   constructor() {
     if (GameFactory.instance) {
       return GameFactory.instance;
     }
 
-    this.games = {
-      slots: {
-        id: 'slots',
-        title: 'Slots 🎰',
-        name: 'Slots',
-        description: 'Juega a las máquinas tragaperras',
-        minBet: 10,
-        maxBet: 10000,
-        rtp: 96,
-        category: 'casino',
-        features: ['autoplay', 'turbo', 'paylines'],
-        rules: [
-          'Consigue 3 o más símbolos iguales en línea',
-          'La línea del medio es la que paga',
-          'Símbolos especiales dan mayores premios',
-          'El multiplicador depende del símbolo'
-        ],
-        payouts: {
-          '🌟': { 5: 500, 4: 100, 3: 20 },
-          '7️⃣': { 5: 250, 4: 75, 3: 15 },
-          '👑': { 5: 100, 4: 50, 3: 10 },
-          '💎': { 5: 75, 4: 40, 3: 8 },
-          '🍇': { 5: 50, 4: 25, 3: 6 },
-          '🍎': { 5: 25, 4: 15, 3: 5 },
-          '🍊': { 5: 25, 4: 15, 3: 5 },
-          '🍋': { 5: 25, 4: 15, 3: 5 }
-        }
-      },
+    // Cache de instancias singleton para cada juego
+    this.gameInstances = {
+      slots: null,
+      blackjack: null,
+      roulette: null,
+      poker: null,
+      craps: null,
+      baccarat: null
+    };
 
-      blackjack: {
-        id: 'blackjack',
-        title: 'Blackjack 🃏',
-        name: 'Blackjack',
-        description: 'Suma 21 y vence al crupier',
-        minBet: 5,
-        maxBet: 5000,
-        rtp: 99.5,
-        category: 'cartas',
-        features: ['double', 'split', 'insurance'],
-        rules: [
-          'El objetivo es llegar a 21 sin pasarse',
-          'Blackjack (21 en 2 cartas) paga 2.5x',
-          'El dealer pide hasta 17 o más',
-          'Si te pasas de 21, pierdes automáticamente',
-          'En caso de empate, recuperas tu apuesta'
-        ],
-        payouts: {
-          blackjack: 2.5,
-          win: 2,
-          push: 1,
-          loss: 0
-        }
-      },
-
-      roulette: {
-        id: 'roulette',
-        title: 'Ruleta 🎡',
-        name: 'Ruleta',
-        description: 'Apuesta en números y colores',
-        minBet: 10,
-        maxBet: 10000,
-        rtp: 97.3,
-        category: 'casino',
-        features: ['multiple-bets', 'quick-bet', 'statistics'],
-        rules: [
-          'Ruleta europea con números del 0 al 36',
-          'Puedes hacer múltiples apuestas simultáneas',
-          'El 0 es verde, los demás son rojos o negros',
-          'Diferentes tipos de apuesta tienen distintos pagos'
-        ],
-        betTypes: {
-          straight: { name: 'Pleno', payout: 36, description: 'Un solo número' },
-          red: { name: 'Rojo', payout: 2, description: 'Cualquier número rojo' },
-          black: { name: 'Negro', payout: 2, description: 'Cualquier número negro' },
-          odd: { name: 'Impar', payout: 2, description: 'Números impares' },
-          even: { name: 'Par', payout: 2, description: 'Números pares' },
-          low: { name: 'Bajo (1-18)', payout: 2, description: 'Números del 1 al 18' },
-          high: { name: 'Alto (19-36)', payout: 2, description: 'Números del 19 al 36' },
-          dozen_1st: { name: 'Primera Docena', payout: 3, description: 'Números 1-12' },
-          dozen_2nd: { name: 'Segunda Docena', payout: 3, description: 'Números 13-24' },
-          dozen_3rd: { name: 'Tercera Docena', payout: 3, description: 'Números 25-36' },
-          column_1st: { name: 'Primera Columna', payout: 3, description: 'Columna 1, 4, 7...' },
-          column_2nd: { name: 'Segunda Columna', payout: 3, description: 'Columna 2, 5, 8...' },
-          column_3rd: { name: 'Tercera Columna', payout: 3, description: 'Columna 3, 6, 9...' }
-        },
-        payouts: {
-          straight: 36,
-          dozen: 3,
-          column: 3,
-          simple: 2
-        }
-      },
-
-      poker: {
-        id: 'poker',
-        title: 'Poker ♠️',
-        name: 'Poker',
-        description: 'Forma la mejor mano de 3 cartas',
-        minBet: 10,
-        maxBet: 10000,
-        rtp: 98.2,
-        category: 'cartas',
-        features: ['ante-bonus', 'fold', 'play'],
-        rules: [
-          'Poker de 3 cartas contra el dealer',
-          'Haz la apuesta Ante para recibir cartas',
-          'Decide si juegas (Play) o te retiras (Fold)',
-          'Play cuesta lo mismo que Ante',
-          'Dealer debe tener Q o mejor para calificar',
-          'Ante Bonus se paga independientemente de ganar'
-        ],
-        handRankings: [
-          { name: 'Escalera de Color', rank: 5, bonus: 5 },
-          { name: 'Trío', rank: 4, bonus: 4 },
-          { name: 'Escalera', rank: 3, bonus: 1 },
-          { name: 'Color', rank: 2, bonus: 0 },
-          { name: 'Par', rank: 1, bonus: 0 },
-          { name: 'Carta Alta', rank: 0, bonus: 0 }
-        ],
-        payouts: {
-          straightFlush: 5,
-          threeOfKind: 4,
-          straight: 1,
-          antePay: 1,
-          playPay: 1
-        }
-      },
-
-      craps: {
-        id: 'craps',
-        title: 'Dados 🎲',
-        name: 'Craps',
-        description: 'Lanza los dados y gana',
-        minBet: 10,
-        maxBet: 10000,
-        rtp: 98.6,
-        category: 'casino',
-        features: ['pass-line', 'dont-pass', 'field-bets'],
-        rules: [
-          'Juego clásico de dados de casino',
-          'Apuesta en el resultado de dos dados',
-          'Múltiples tipos de apuestas disponibles',
-          'Pass Line es la apuesta básica'
-        ],
-        payouts: {
-          passLine: 2,
-          dontPass: 2,
-          field: 2,
-          any7: 5,
-          any11: 16
-        }
-      },
-
-      baccarat: {
-        id: 'baccarat',
-        title: 'Baccarat 💎',
-        name: 'Baccarat',
-        description: 'Juego clásico de cartas de casino',
-        minBet: 10,
-        maxBet: 10000,
-        rtp: 98.9,
-        category: 'cartas',
-        features: ['player-bet', 'banker-bet', 'tie-bet'],
-        rules: [
-          'Apuesta en Jugador, Banca o Empate',
-          'La mano más cercana a 9 gana',
-          'Cartas del 2-9 valen su número',
-          'Ases valen 1, figuras valen 0',
-          'Si la suma pasa de 10, se resta 10'
-        ],
-        payouts: {
-          player: 2,
-          banker: 1.95,
-          tie: 9
-        }
-      }
+    // Mapeo de tipos de juego a sus constructores
+    this.gameConstructors = {
+      slots: SlotsGame,
+      blackjack: BlackjackGame,
+      roulette: RouletteGame,
+      poker: PokerGame,
+      craps: CrapsGame,
+      baccarat: BaccaratGame
     };
 
     GameFactory.instance = this;
   }
 
+  /**
+   * Factory Method - Crea o retorna una instancia de juego
+   * Implementa patrón Singleton para cada juego
+   * @param {string} gameId - ID del juego a crear
+   * @returns {Game} Instancia del juego solicitado
+   */
   createGame(gameId) {
-    const game = this.games[gameId];
-    
-    if (!game) {
-      return null;
+    if (!this.gameConstructors.hasOwnProperty(gameId)) {
+      throw new Error(`Juego no encontrado: ${gameId}`);
     }
 
-    return JSON.parse(JSON.stringify(game));
+    // Si ya existe una instancia, retornarla (Singleton)
+    if (this.gameInstances[gameId] === null) {
+      const GameClass = this.gameConstructors[gameId];
+      this.gameInstances[gameId] = new GameClass();
+    }
+
+    return this.gameInstances[gameId];
   }
 
+  /**
+   * Obtiene todas las instancias de juegos
+   * @returns {Object} Objeto con todas las instancias de juegos
+   */
+  getAllGameInstances() {
+    const allGames = {};
+    for (const gameId in this.gameConstructors) {
+      allGames[gameId] = this.createGame(gameId);
+    }
+    return allGames;
+  }
+
+  /**
+   * Obtiene información resumida de todos los juegos
+   * @returns {Array} Array con información de todos los juegos
+   */
   getAllGames() {
-    return Object.values(this.games).map(game => ({
-      id: game.id,
-      title: game.title,
-      name: game.name,
-      description: game.description,
-      minBet: game.minBet,
-      maxBet: game.maxBet,
-      rtp: game.rtp,
-      category: game.category
-    }));
+    return Object.keys(this.gameConstructors).map(gameId => {
+      const game = this.createGame(gameId);
+      return game.getInfo();
+    });
   }
 
+  /**
+   * Filtra juegos por categoría
+   * @param {string} category - Categoría del juego
+   * @returns {Array} Array de juegos en esa categoría
+   */
   getGamesByCategory(category) {
-    return Object.values(this.games)
+    return Object.keys(this.gameConstructors)
+      .map(gameId => this.createGame(gameId))
       .filter(game => game.category === category)
-      .map(game => ({
-        id: game.id,
-        title: game.title,
-        name: game.name,
-        description: game.description,
-        minBet: game.minBet,
-        maxBet: game.maxBet,
-        rtp: game.rtp
-      }));
+      .map(game => game.getInfo());
   }
 
+  /**
+   * Verifica si un juego existe
+   * @param {string} gameId - ID del juego
+   * @returns {boolean}
+   */
   gameExists(gameId) {
-    return this.games.hasOwnProperty(gameId);
+    return this.gameConstructors.hasOwnProperty(gameId);
   }
 
+  /**
+   * Obtiene los límites de apuesta de un juego
+   * @param {string} gameId - ID del juego
+   * @returns {Object} Objeto con minBet y maxBet
+   */
   getBetLimits(gameId) {
-    const game = this.games[gameId];
-    
-    if (!game) {
-      return null;
+    if (!this.gameExists(gameId)) {
+      throw new Error(`Juego no encontrado: ${gameId}`);
     }
-
-    return {
-      minBet: game.minBet,
-      maxBet: game.maxBet
-    };
+    const game = this.createGame(gameId);
+    return game.getBetLimits();
   }
 
+  /**
+   * Valida una apuesta para un juego específico
+   * @param {string} gameId - ID del juego
+   * @param {number} betAmount - Monto de la apuesta
+   * @returns {Object} Objeto con validez y mensaje de error si aplica
+   */
   validateBet(gameId, betAmount) {
-    const game = this.games[gameId];
-    
-    if (!game) {
+    if (!this.gameExists(gameId)) {
       return { valid: false, error: 'Juego no encontrado' };
     }
-
-    if (typeof betAmount !== 'number' || isNaN(betAmount)) {
-      return { valid: false, error: 'Monto inválido' };
-    }
-
-    if (betAmount < game.minBet) {
-      return { valid: false, error: `Apuesta mínima: $${game.minBet}` };
-    }
-
-    if (betAmount > game.maxBet) {
-      return { valid: false, error: `Apuesta máxima: $${game.maxBet}` };
-    }
-
-    return { valid: true };
+    const game = this.createGame(gameId);
+    return game.validateBet(betAmount);
   }
 
+  /**
+   * Obtiene información completa de un juego
+   * @param {string} gameId - ID del juego
+   * @returns {Object} Configuración completa del juego
+   */
   getGameInfo(gameId) {
-    return this.createGame(gameId);
+    if (!this.gameExists(gameId)) {
+      throw new Error(`Juego no encontrado: ${gameId}`);
+    }
+    const game = this.createGame(gameId);
+    return game.getConfig();
   }
 
-  registerGame(gameId, gameConfig) {
-    this.games[gameId] = {
-      id: gameId,
-      title: gameConfig.title || gameId,
-      name: gameConfig.name || gameId,
-      description: gameConfig.description || '',
-      minBet: gameConfig.minBet || 10,
-      maxBet: gameConfig.maxBet || 10000,
-      rtp: gameConfig.rtp || 95,
-      category: gameConfig.category || 'casino',
-      features: gameConfig.features || [],
-      rules: gameConfig.rules || [],
-      payouts: gameConfig.payouts || {},
-      ...gameConfig
-    };
+  /**
+   * Registra un nuevo tipo de juego dinámicamente
+   * @param {string} gameId - ID del juego
+   * @param {Function} GameClass - Clase del juego (debe extender Game)
+   */
+  registerGameType(gameId, GameClass) {
+    const Game = require('./games/Game');
+    if (!(GameClass.prototype instanceof Game)) {
+      throw new Error('La clase debe extender Game');
+    }
+    this.gameConstructors[gameId] = GameClass;
+    this.gameInstances[gameId] = null;
+  }
+
+  /**
+   * Obtiene la instancia de Factory (Singleton)
+   * @returns {GameFactory}
+   */
+  static getInstance() {
+    if (!GameFactory.instance) {
+      new GameFactory();
+    }
+    return GameFactory.instance;
   }
 }
 

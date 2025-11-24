@@ -5,19 +5,6 @@ const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
 
-const SYMBOLS = ['🍎', '🍊', '🍋', '🍇', '💎', '👑', '7️⃣', '🌟'];
-
-const PAYOUTS = {
-  '🌟': { 5: 500, 4: 100, 3: 20 },
-  '7️⃣': { 5: 250, 4: 75, 3: 15 },
-  '👑': { 5: 100, 4: 50, 3: 10 },
-  '💎': { 5: 75, 4: 40, 3: 8 },
-  '🍇': { 5: 50, 4: 25, 3: 6 },
-  '🍎': { 5: 25, 4: 15, 3: 5 },
-  '🍊': { 5: 25, 4: 15, 3: 5 },
-  '🍋': { 5: 25, 4: 15, 3: 5 },
-};
-
 function toNumber(n) {
   if (typeof n === 'number') return n;
   if (typeof n === 'string') return Number(n);
@@ -41,18 +28,19 @@ exports.initSlots = async (req, res) => {
     }
 
     const balance = await balanceService.getOrCreateBalance(userId);
-    const betLimits = gameFactory.getBetLimits('slots');
-    const gameConfig = gameFactory.createGame('slots');
-    const totalBalance = balance;
+    const game = gameFactory.createGame('slots');
+    const betLimits = game.getBetLimits();
+    const symbols = game.getSymbols();
+    const payouts = game.getPayouts();
 
     const resp = {
       success: true,
       ok: true,
-      balance: totalBalance,
+      balance: balance,
       minBet: betLimits.minBet,
       maxBet: betLimits.maxBet,
-      symbols: SYMBOLS,
-      payouts: gameConfig.payouts,
+      symbols: symbols,
+      payouts: payouts,
     };
 
     return res.json(resp);
@@ -79,7 +67,8 @@ exports.spinSlots = async (req, res) => {
     let { betAmount } = req.body;
     betAmount = parseInt(betAmount, 10);
 
-    const betValidation = gameFactory.validateBet('slots', betAmount);
+    const game = gameFactory.createGame('slots');
+    const betValidation = game.validateBet(betAmount);
     if (!betValidation.valid) {
       return res.status(400).json({
         success: false,
@@ -87,7 +76,10 @@ exports.spinSlots = async (req, res) => {
         message: betValidation.error,
       });
     }
-    let balance = await balanceService.getOrCreateBalance(userId);
+
+    const balance = await balanceService.getOrCreateBalance(userId);
+    const symbols = game.getSymbols();
+    const payouts = game.getPayouts();
 
     if (!await balanceService.canBet(userId, betAmount)) {
       return res.status(400).json({
@@ -101,7 +93,7 @@ exports.spinSlots = async (req, res) => {
     for (let col = 0; col < 5; col++) {
       const column = [];
       for (let row = 0; row < 3; row++) {
-        column.push(SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]);
+        column.push(symbols[Math.floor(Math.random() * symbols.length)]);
       }
       grid.push(column);
     }
@@ -124,8 +116,8 @@ exports.spinSlots = async (req, res) => {
       }
     }
 
-    if (consecutiveCount >= 3 && PAYOUTS[firstSymbol]) {
-      const payoutData = PAYOUTS[firstSymbol];
+    if (consecutiveCount >= 3 && payouts[firstSymbol]) {
+      const payoutData = payouts[firstSymbol];
       multiplier = payoutData[consecutiveCount] || payoutData[3] || 0;
       
       if (multiplier > 0) {
@@ -147,7 +139,7 @@ exports.spinSlots = async (req, res) => {
       await balanceService.updateBalance(userId, winAmount);
     }
 
-    balance = await balanceService.getBalance(userId);
+    const newBalance = await balanceService.getBalance(userId);
     const gameResult = winAmount > 0 ? 'win' : 'loss';
     await saveGameResult(
       userId,
@@ -177,7 +169,7 @@ exports.spinSlots = async (req, res) => {
       multiplier,
       winAmount,
       isWin: winAmount > 0,
-      balance: totalBalance,
+      balance: newBalance,
     };
 
     return res.json(resp);
@@ -202,14 +194,16 @@ exports.slotsInfo = async (req, res) => {
     }
 
     const balance = await balanceService.getOrCreateBalance(userId);
-    const totalBalance = balance;
+    const game = gameFactory.createGame('slots');
+    const symbols = game.getSymbols();
+    const payouts = game.getPayouts();
 
     const resp = {
       success: true,
       ok: true,
-      balance: totalBalance,
-      symbols: SYMBOLS,
-      payouts: PAYOUTS,
+      balance: balance,
+      symbols: symbols,
+      payouts: payouts,
     };
 
     return res.json(resp);

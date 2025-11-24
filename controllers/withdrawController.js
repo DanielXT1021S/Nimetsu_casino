@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const balanceService = require('../services/balanceService');
 
 exports.getPaymentMethods = async (req, res) => {
   try {
@@ -137,14 +138,11 @@ exports.requestBankWithdrawal = async (req, res) => {
       });
     }
 
-    const [balance] = await pool.query(
-      'SELECT balance FROM balances WHERE userId = ?',
-      [userId]
-    );
+    const balance = await balanceService.getBalance(userId);
 
     
 
-    if (!balance.length || balance[0].balance < amount) {
+    if (balance === null || balance < amount) {
       
       return res.status(400).json({
         success: false,
@@ -170,10 +168,7 @@ exports.requestBankWithdrawal = async (req, res) => {
 
     
 
-    await pool.query(
-      'UPDATE balances SET balance = balance - ? WHERE userId = ?',
-      [amount, userId]
-    );
+    await balanceService.updateBalance(userId, -amount);
 
     
 
@@ -219,12 +214,9 @@ exports.requestCryptoWithdrawal = async (req, res) => {
       });
     }
 
-    const [balance] = await pool.query(
-      'SELECT balance FROM balances WHERE userId = ?',
-      [userId]
-    );
+    const balance = await balanceService.getBalance(userId);
 
-    if (!balance.length || balance[0].balance < amount) {
+    if (balance === null || balance < amount) {
       return res.status(400).json({
         success: false,
         message: 'Saldo insuficiente'
@@ -253,10 +245,7 @@ exports.requestCryptoWithdrawal = async (req, res) => {
       [userId, `crypto_${cryptoType}`, amount, amount, cryptoType, walletAddress, cryptoAmount]
     );
 
-    await pool.query(
-      'UPDATE balances SET balance = balance - ? WHERE userId = ?',
-      [amount, userId]
-    );
+    await balanceService.updateBalance(userId, -amount);
 
     await pool.query(
       `INSERT INTO transaction_status_history 

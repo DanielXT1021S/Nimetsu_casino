@@ -3,32 +3,13 @@ const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
 
-const ROULETTE_NUMBERS = Array.from({ length: 37 }, (_, i) => i);
-const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
-
-const BET_TYPES = {
-  STRAIGHT: 'straight',
-  RED: 'red',
-  BLACK: 'black',
-  ODD: 'odd',
-  EVEN: 'even',
-  LOW: 'low',
-  HIGH: 'high',
-  DOZEN_1ST: 'dozen_1st',
-  DOZEN_2ND: 'dozen_2nd',
-  DOZEN_3RD: 'dozen_3rd',
-  COLUMN_1ST: 'column_1st',
-  COLUMN_2ND: 'column_2nd',
-  COLUMN_3RD: 'column_3rd'
-};
-
 exports.initGame = async (req, res) => {
   try {
     const { userId } = req.user;
 
     const balance = await balanceService.getOrCreateBalance(userId);
-    const betLimits = gameFactory.getBetLimits('roulette');
+    const game = gameFactory.createGame('roulette');
+    const betLimits = game.getBetLimits();
 
     return res.json({
       success: true,
@@ -88,7 +69,10 @@ exports.spin = async (req, res) => {
       });
     }
 
+    const game = gameFactory.createGame('roulette');
     const currentBalance = await balanceService.getOrCreateBalance(userId);
+    const redNumbers = game.getRedNumbers();
+    const blackNumbers = game.getBlackNumbers();
 
     const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
 
@@ -107,7 +91,7 @@ exports.spin = async (req, res) => {
     const winningBets = [];
 
     bets.forEach(bet => {
-      const isWinning = checkBetWin(bet, wheelNumber);
+      const isWinning = checkBetWin(bet, wheelNumber, redNumbers, blackNumbers);
       
       if (isWinning) {
         const payout = calculatePayout(bet);
@@ -129,7 +113,7 @@ exports.spin = async (req, res) => {
     const gameResult = winnings > totalBet ? 'win' : (winnings === totalBet ? 'tie' : 'loss');
     const gameData = {
       wheelNumber: wheelNumber,
-      wheelColor: getNumberColor(wheelNumber),
+      wheelColor: game.getNumberColor(wheelNumber),
       bets: bets,
       winningBets: winningBets
     };
@@ -146,7 +130,7 @@ exports.spin = async (req, res) => {
     res.json({
       success: true,
       wheelNumber: wheelNumber,
-      wheelColor: getNumberColor(wheelNumber),
+      wheelColor: game.getNumberColor(wheelNumber),
       totalBet: totalBet,
       totalWin: winnings,
       winningBets: winningBets,
@@ -162,16 +146,32 @@ exports.spin = async (req, res) => {
   }
 };
 
-function checkBetWin(bet, wheelNumber) {
+function checkBetWin(bet, wheelNumber, redNumbers, blackNumbers) {
+  const BET_TYPES = {
+    STRAIGHT: 'straight',
+    RED: 'red',
+    BLACK: 'black',
+    ODD: 'odd',
+    EVEN: 'even',
+    LOW: 'low',
+    HIGH: 'high',
+    DOZEN_1ST: 'dozen_1st',
+    DOZEN_2ND: 'dozen_2nd',
+    DOZEN_3RD: 'dozen_3rd',
+    COLUMN_1ST: 'column_1st',
+    COLUMN_2ND: 'column_2nd',
+    COLUMN_3RD: 'column_3rd'
+  };
+
   switch (bet.type) {
     case BET_TYPES.STRAIGHT:
       return bet.value === wheelNumber;
     
     case BET_TYPES.RED:
-      return RED_NUMBERS.includes(wheelNumber);
+      return redNumbers.includes(wheelNumber);
     
     case BET_TYPES.BLACK:
-      return BLACK_NUMBERS.includes(wheelNumber);
+      return blackNumbers.includes(wheelNumber);
     
     case BET_TYPES.ODD:
       return wheelNumber !== 0 && wheelNumber % 2 === 1;
@@ -232,17 +232,19 @@ function calculatePayout(bet) {
 }
 
 function getNumberColor(number) {
+  const game = gameFactory.createGame('roulette');
   if (number === 0) return 'green';
-  if (RED_NUMBERS.includes(number)) return 'red';
+  if (game.getRedNumbers().includes(number)) return 'red';
   return 'black';
 }
 
 exports.getWheelInfo = (req, res) => {
+  const game = gameFactory.createGame('roulette');
   res.json({
     ok: true,
-    numbers: ROULETTE_NUMBERS,
-    redNumbers: RED_NUMBERS,
-    blackNumbers: BLACK_NUMBERS,
-    betTypes: BET_TYPES
+    numbers: game.getNumbers(),
+    redNumbers: game.getRedNumbers(),
+    blackNumbers: game.getBlackNumbers(),
+    betTypes: game.getBetTypes()
   });
 };

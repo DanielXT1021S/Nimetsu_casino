@@ -5,34 +5,24 @@ const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
 
-const HAND_RANKINGS = {
-  STRAIGHT_FLUSH: 5,
-  THREE_OF_A_KIND: 4,
-  STRAIGHT: 3,
-  FLUSH: 2,
-  PAIR: 1,
-  HIGH_CARD: 0,
-};
-
-const ANTE_BONUS = {
-  STRAIGHT_FLUSH: 5,
-  THREE_OF_A_KIND: 4,
-  STRAIGHT: 1,
-};
-
 async function initGame(req, res) {
   try {
     const { userId } = req.user;
 
     const balance = await balanceService.getOrCreateBalance(userId);
-    const betLimits = gameFactory.getBetLimits('poker');
+    const game = gameFactory.createGame('poker');
+    const betLimits = game.getBetLimits();
+    const handRankings = game.getHandRankings();
 
     return res.json({
       success: true,
       balance,
       minBet: betLimits.minBet,
       maxBet: betLimits.maxBet,
-      anteBonus: ANTE_BONUS,
+      anteBonus: handRankings.reduce((acc, hand) => {
+        if (hand.bonus) acc[hand.name] = hand.bonus;
+        return acc;
+      }, {}),
     });
   } catch (err) {
     return res.status(500).json({
@@ -47,7 +37,8 @@ async function placeAnte(req, res) {
     const { userId } = req.user;
     const { ante } = req.body;
 
-    const betValidation = gameFactory.validateBet('poker', ante);
+    const game = gameFactory.createGame('poker');
+    const betValidation = game.validateBet(ante);
     if (!betValidation.valid) {
       return res.status(400).json({
         success: false,
@@ -105,19 +96,7 @@ async function playHand(req, res) {
       });
     }
 
-    const [balanceRows] = await pool.query(
-      'SELECT balance FROM balances WHERE userId = ? LIMIT 1',
-      [userId]
-    );
-
-    if (balanceRows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Balance no encontrado',
-      });
-    }
-
-    const currentBalance = balanceRows[0].balance;
+    const currentBalance = await balanceService.getOrCreateBalance(userId);
 
     if (currentBalance < ante) {
       return res.status(400).json({
@@ -126,10 +105,7 @@ async function playHand(req, res) {
       });
     }
 
-    await pool.query(
-      'UPDATE balances SET balance = balance - ? WHERE userId = ?',
-      [ante, userId]
-    );
+    await balanceService.updateBalance(userId, -ante);
 
     const dealerHand = generateCards(3);
 
@@ -140,6 +116,13 @@ async function playHand(req, res) {
     let totalWin = 0;
     let result = '';
     let anteBonus = 0;
+
+    // Mapeo de bonus por tipo de mano
+    const ANTE_BONUS = {
+      'STRAIGHT_FLUSH': 5,
+      'THREE_OF_A_KIND': 4,
+      'STRAIGHT': 1,
+    };
 
     if (ANTE_BONUS[playerResult.name]) {
       anteBonus = ante * ANTE_BONUS[playerResult.name];
@@ -277,6 +260,15 @@ function generateCards(count) {
 }
 
 function evaluateHand(hand) {
+  const HAND_RANKINGS = {
+    STRAIGHT_FLUSH: 5,
+    THREE_OF_A_KIND: 4,
+    STRAIGHT: 3,
+    FLUSH: 2,
+    PAIR: 1,
+    HIGH_CARD: 0,
+  };
+
   const ranks = hand.map(card => card.rank);
   const suits = hand.map(card => card.suit);
   

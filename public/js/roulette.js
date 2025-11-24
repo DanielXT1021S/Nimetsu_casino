@@ -830,6 +830,10 @@ function placeBet(betType, betValue, betLabel) {
   };
 
   rouletteState.bets.push(bet);
+  
+  // Mostrar ficha visual en el tablero
+  showChipOnBoard(betType, betValue, amount);
+  
   updateBetsSummary();
   updateTotalBet();
 
@@ -872,24 +876,43 @@ function updateBetsSummary() {
   summary.innerHTML = '';
 
   if (rouletteState.bets.length === 0) {
-    summary.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">Sin apuestas aún</p>';
+    summary.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center; font-style: italic; padding: 1rem;">Coloca fichas en el tablero para apostar</p>';
     return;
   }
 
+  // Agrupar apuestas por tipo/valor
+  const groupedBets = {};
   rouletteState.bets.forEach(bet => {
+    const key = `${bet.type}-${bet.value}`;
+    if (!groupedBets[key]) {
+      groupedBets[key] = {
+        label: bet.label,
+        total: 0,
+        count: 0,
+        bets: []
+      };
+    }
+    groupedBets[key].total += bet.amount;
+    groupedBets[key].count++;
+    groupedBets[key].bets.push(bet);
+  });
+
+  // Mostrar resumen agrupado
+  Object.values(groupedBets).forEach(group => {
     const div = document.createElement('div');
     div.className = 'bet-item';
     div.innerHTML = `
       <div class="bet-item-info">
-        <span class="bet-item-type">${bet.label}</span>
-        <span class="bet-item-amount">Apuesta: <span>$${bet.amount}</span></span>
+        <span class="bet-item-type">${group.label}${group.count > 1 ? ` (x${group.count})` : ''}</span>
+        <span class="bet-item-amount">$${group.total}</span>
       </div>
-      <button class="bet-item-remove" data-bet-id="${bet.id}">✕</button>
+      <button class="bet-item-remove" data-bets="${group.bets.map(b => b.id).join(',')}">✕</button>
     `;
 
     const removeBtn = div.querySelector('.bet-item-remove');
     removeBtn.addEventListener('click', () => {
-      removeBet(bet.id);
+      const ids = removeBtn.dataset.bets.split(',');
+      ids.forEach(id => removeBet(parseFloat(id)));
     });
 
     summary.appendChild(div);
@@ -900,12 +923,19 @@ function removeBet(betId) {
   rouletteState.bets = rouletteState.bets.filter(b => b.id !== betId);
   updateBetsSummary();
   updateTotalBet();
+  
+  // Actualizar fichas en el tablero
+  clearChipsFromBoard();
+  rouletteState.bets.forEach(bet => {
+    showChipOnBoard(bet.type, bet.value, bet.amount);
+  });
 }
 
 function clearAllBets() {
   rouletteState.bets = [];
   updateBetsSummary();
   updateTotalBet();
+  clearChipsFromBoard();
   showToast('Apuestas limpias', 'success');
 }
 
@@ -915,6 +945,91 @@ function updateTotalBet() {
   if (totalBetEl) {
     totalBetEl.textContent = `$${total.toLocaleString()}`;
   }
+}
+
+// =========================
+// Fichas visuales en el tablero
+// =========================
+function showChipOnBoard(betType, betValue, amount) {
+  // Encontrar la celda correspondiente
+  let cell = null;
+  
+  if (betType === 'straight') {
+    cell = document.querySelector(`.bet-cell[data-bet-type="straight"][data-bet-value="${betValue}"]`);
+  } else {
+    cell = document.querySelector(`.bet-cell[data-bet-type="${betType}"]`);
+    if (!cell && betValue !== undefined) {
+      cell = document.querySelector(`.bet-cell[data-bet-type="${betType}"][data-bet-value="${betValue}"]`);
+    }
+  }
+  
+  if (!cell) {
+    console.warn(`No se encontró celda para ${betType} - ${betValue}`);
+    return;
+  }
+  
+  // Buscar si ya existe un stack de fichas en esta celda
+  let chipStack = cell.querySelector('.bet-chip-stack');
+  
+  if (!chipStack) {
+    chipStack = document.createElement('div');
+    chipStack.className = 'bet-chip-stack';
+    cell.appendChild(chipStack);
+  }
+  
+  // Obtener total actual de apuestas en esta celda
+  const cellBets = rouletteState.bets.filter(bet => 
+    (bet.type === betType) && 
+    (betValue === undefined || bet.value === betValue)
+  );
+  
+  const totalAmount = cellBets.reduce((sum, bet) => sum + bet.amount, 0);
+  
+  // Limpiar y recrear fichas
+  chipStack.innerHTML = '';
+  
+  // Determinar el valor de ficha más cercano para el color
+  const chipColorValue = getChipColorValue(amount);
+  
+  // Mostrar ficha con el monto de la última apuesta
+  const chip = document.createElement('div');
+  chip.className = 'bet-chip-visual';
+  chip.setAttribute('data-chip-value', chipColorValue);
+  chip.textContent = formatChipAmount(amount);
+  chipStack.appendChild(chip);
+  
+  // Si hay múltiples apuestas, mostrar total
+  if (cellBets.length > 1) {
+    const totalBadge = document.createElement('div');
+    totalBadge.className = 'bet-chip-total';
+    totalBadge.textContent = formatChipAmount(totalAmount);
+    chipStack.appendChild(totalBadge);
+  }
+}
+
+function getChipColorValue(amount) {
+  // Retorna el valor de ficha más cercano para determinar el color
+  if (amount >= 1000) return 1000;
+  if (amount >= 500) return 500;
+  if (amount >= 100) return 100;
+  if (amount >= 50) return 50;
+  if (amount >= 25) return 25;
+  return 10;
+}
+
+function formatChipAmount(amount) {
+  // Formatea el monto para mostrar en la ficha
+  if (amount >= 1000000) {
+    return `$${(amount / 1000000).toFixed(1)}M`;
+  }
+  if (amount >= 1000) {
+    return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
+  }
+  return `$${amount}`;
+}
+
+function clearChipsFromBoard() {
+  document.querySelectorAll('.bet-chip-stack').forEach(stack => stack.remove());
 }
 
 // =========================
@@ -973,18 +1088,19 @@ async function spinWheel() {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Error del servidor: ${response.status}`);
     }
 
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('La respuesta del servidor no es JSON');
+      throw new Error('Respuesta inválida del servidor');
     }
 
     const data = await response.json();
 
     if (!data.success) {
-      showToast(data.message || 'Error al girar', 'error');
+      showToast(data.message || 'Error al girar la ruleta', 'error');
       rouletteState.isSpinning = false;
       if (spinBtn) spinBtn.disabled = false;
       return;
@@ -1012,17 +1128,38 @@ async function spinWheel() {
     }
     updateLastResults();
 
-    // Limpiar apuestas
-    rouletteState.bets = [];
-    updateBetsSummary();
-    updateTotalBet();
+    // Limpiar apuestas y fichas del tablero después de 3 segundos
+    setTimeout(() => {
+      rouletteState.bets = [];
+      updateBetsSummary();
+      updateTotalBet();
+      clearChipsFromBoard();
+      clearHighlights();
+    }, 3000);
 
     rouletteState.isSpinning = false;
     if (spinBtn) spinBtn.disabled = false;
 
   } catch (error) {
     console.error('Error spinning wheel:', error);
-    showToast('Error de conexión', 'error');
+    
+    // Mensajes de error específicos
+    let errorMessage = 'Error de conexión';
+    
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+    } else if (error.message.includes('servidor')) {
+      errorMessage = error.message;
+    } else if (error.message.includes('token')) {
+      errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+    } else if (error.message.includes('Respuesta inválida')) {
+      errorMessage = 'Error interno del servidor. Intenta nuevamente.';
+    }
+    
+    showToast(errorMessage, 'error');
     rouletteState.isSpinning = false;
     const spinBtn = document.getElementById('spinBtn');
     if (spinBtn) spinBtn.disabled = false;
@@ -1160,8 +1297,11 @@ function highlightWinningNumber(number) {
     winningPocket.path.classList.add('win');
   }
 
-  // Resaltar en la mesa de apuestas
+  // Resaltar en la mesa de apuestas con animación mejorada
   highlightBetCell(number);
+  
+  // Crear efecto de partículas doradas
+  createWinParticles(number);
 }
 
 function displayResult(data) {
@@ -1256,6 +1396,66 @@ function highlightBetCell(number) {
   }, 3000);
 }
 
+function createWinParticles(number) {
+  // Buscar la celda ganadora
+  const cell = document.querySelector(`.bet-cell[data-bet-type="straight"][data-bet-value="${number}"]`) ||
+               document.querySelector(`.zero-shape[data-bet-value="${number}"]`);
+  
+  if (!cell) return;
+  
+  const rect = cell.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  
+  // Crear 15 partículas
+  for (let i = 0; i < 15; i++) {
+    setTimeout(() => {
+      const particle = document.createElement('div');
+      particle.style.position = 'fixed';
+      particle.style.left = centerX + 'px';
+      particle.style.top = centerY + 'px';
+      particle.style.width = '8px';
+      particle.style.height = '8px';
+      particle.style.borderRadius = '50%';
+      particle.style.background = 'radial-gradient(circle, #ffd700, #ffed4e)';
+      particle.style.boxShadow = '0 0 10px #ffd700, 0 0 20px #ffd700';
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '1000';
+      
+      document.body.appendChild(particle);
+      
+      const angle = (Math.PI * 2 * i) / 15;
+      const velocity = 100 + Math.random() * 150;
+      const vx = Math.cos(angle) * velocity;
+      const vy = Math.sin(angle) * velocity - 100;
+      
+      let x = centerX;
+      let y = centerY;
+      let opacity = 1;
+      let vy_current = vy;
+      
+      const animateParticle = () => {
+        vy_current += 5; // Gravedad
+        x += vx * 0.016;
+        y += vy_current * 0.016;
+        opacity -= 0.015;
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.opacity = opacity;
+        
+        if (opacity > 0) {
+          requestAnimationFrame(animateParticle);
+        } else {
+          particle.remove();
+        }
+      };
+      
+      requestAnimationFrame(animateParticle);
+    }, i * 30);
+  }
+}
+
 function updateLastResults() {
   const resultsDisplay = document.getElementById('lastResults');
   if (!resultsDisplay) return;
@@ -1281,6 +1481,7 @@ function resetGame() {
   updateBetsSummary();
   updateTotalBet();
   updateLastResults();
+  clearChipsFromBoard();
 
   const resultDisplay = document.querySelector('.result-display');
   if (resultDisplay) resultDisplay.classList.remove('show');
