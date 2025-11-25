@@ -248,7 +248,7 @@
   min-height: 110px;
   background: var(--felt);
   clip-path: polygon(0 50%, 40% 5%, 100% 5%, 100% 95%, 40% 95%);
-  border: 2px solid var(--line);
+  border: 10px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,7 +275,6 @@
 .main-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
 .numbers-plus-two {

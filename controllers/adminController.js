@@ -258,7 +258,12 @@ async function createUser(req, res) {
 
       const userId = result.insertId;
 
-      await balanceService.createBalance(userId, balance || 1000);
+      // Crear balance dentro de la misma transacción para evitar fallos externos
+      const initialBalance = parseInt(balance, 10) || 1000;
+      await connection.query(
+        'INSERT INTO balances (userId, balance, locked) VALUES (?, ?, ?)',
+        [userId, initialBalance, 0]
+      );
 
       await connection.commit();
       connection.release();

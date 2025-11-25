@@ -1,11 +1,23 @@
 // public/js/slots.js - Slots 5x3
 
-// Símbolos y tabla de pagos
-const SYMBOLS = ['🍎', '🍊', '🍋', '🍇', '💎', '👑', '7️⃣', '🌟'];
+// Símbolos con pesos (mayor peso = más común)
+const SYMBOL_WEIGHTS = {
+  '🍎': 15,  // Muy común
+  '🍊': 15,  // Muy común
+  '🍋': 15,  // Muy común
+  '🍇': 12,  // Común
+  '💎': 8,   // Poco común
+  '👑': 6,   // Raro
+  '🌟': 4,   // Muy raro
+  '7️⃣': 2    // JACKPOT - Extremadamente raro
+};
+
+const SYMBOLS = Object.keys(SYMBOL_WEIGHTS);
+
+// Tabla de pagos
 const PAYOUTS = {
-  // 5 símbolos iguales
   '🌟': { 5: 500, 4: 100, 3: 20 },
-  '7️⃣': { 5: 250, 4: 75, 3: 15 },
+  '7️⃣': { 5: 1000, 4: 400, 3: 200 }, // JACKPOT con pagos mucho mayores
   '👑': { 5: 100, 4: 50, 3: 10 },
   '💎': { 5: 75, 4: 40, 3: 8 },
   '🍇': { 5: 50, 4: 25, 3: 6 },
@@ -13,6 +25,18 @@ const PAYOUTS = {
   '🍊': { 5: 25, 4: 15, 3: 5 },
   '🍋': { 5: 25, 4: 15, 3: 5 },
 };
+
+// Función para obtener símbolo aleatorio con pesos
+function getWeightedSymbol() {
+  const totalWeight = Object.values(SYMBOL_WEIGHTS).reduce((a, b) => a + b, 0);
+  let random = Math.random() * totalWeight;
+  
+  for (const [symbol, weight] of Object.entries(SYMBOL_WEIGHTS)) {
+    random -= weight;
+    if (random <= 0) return symbol;
+  }
+  return SYMBOLS[0];
+}
 
 let gameState = {
   balance: 0,
@@ -453,7 +477,7 @@ async function animateReels(result) {
           cells.forEach(cell => {
             const symbolEl = cell.querySelector('.symbol, .reel-symbol');
             if (symbolEl) {
-              symbolEl.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+              symbolEl.textContent = getWeightedSymbol();
             }
           });
         });
@@ -796,95 +820,115 @@ function openPrizesModal() {
   
   prizesModalBody.innerHTML = `
     <h3><i class="fas fa-trophy"></i> Tabla de Pagos Completa</h3>
-    <p>Todos los premios se calculan multiplicando tu apuesta por el multiplicador correspondiente:</p>
+    <p>Todos los premios se calculan multiplicando tu apuesta por el multiplicador correspondiente. Se evalúan 5 líneas: superior, media, inferior y 2 diagonales.</p>
     
     <table class="prize-table">
         <thead>
             <tr>
                 <th>Combinación</th>
-                <th>Multiplicador</th>
-                <th>Probabilidad</th>
+                <th>5 símbolos</th>
+                <th>4 símbolos</th>
+                <th>3 símbolos</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td><i class="fas fa-star" style="color: gold;"></i> <strong>🌟🌟🌟 Estrella Triple</strong></td>
+            <tr style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #000;">
+                <td><strong>🌟 Estrella</strong></td>
+                <td><strong>500x</strong></td>
                 <td>100x</td>
-                <td>~1.56%</td>
-            </tr>
-            <tr>
-                <td><i class="fas fa-dice" style="color: #dc2626;"></i> <strong>7️⃣7️⃣7️⃣ Triple Siete</strong></td>
-                <td>50x</td>
-                <td>~1.56%</td>
-            </tr>
-            <tr>
-                <td><i class="fas fa-crown" style="color: #9333ea;"></i> <strong>👑👑👑 Triple Corona</strong></td>
                 <td>20x</td>
-                <td>~1.56%</td>
+            </tr>
+            <tr style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;">
+                <td><strong>7️⃣ JACKPOT</strong> 🎰</td>
+                <td><strong>1000x</strong></td>
+                <td><strong>400x</strong></td>
+                <td><strong>200x</strong></td>
             </tr>
             <tr>
-                <td><i class="fas fa-gem" style="color: #06b6d4;"></i> <strong>💎💎💎 Triple Diamante</strong></td>
-                <td>15x</td>
-                <td>~1.56%</td>
+                <td><strong>👑 Corona</strong></td>
+                <td>100x</td>
+                <td>50x</td>
+                <td>10x</td>
             </tr>
             <tr>
-                <td><i class="fas fa-wine-glass" style="color: #9333ea;"></i> <strong>🍇🍇🍇 Triple Uva</strong></td>
+                <td><strong>💎 Diamante</strong></td>
+                <td>75x</td>
+                <td>40x</td>
                 <td>8x</td>
-                <td>~1.56%</td>
             </tr>
             <tr>
-                <td><i class="fas fa-apple-alt" style="color: #dc2626;"></i> <strong>🍎🍎🍎 Triple Manzana</strong></td>
-                <td>5x</td>
-                <td>~1.56%</td>
+                <td><strong>🍇 Uva</strong></td>
+                <td>50x</td>
+                <td>25x</td>
+                <td>6x</td>
             </tr>
             <tr>
-                <td><i class="fas fa-lemon" style="color: #f59e0b;"></i> <strong>🍊🍊🍊 Triple Naranja</strong></td>
+                <td><strong>🍎 Manzana</strong></td>
+                <td>25x</td>
+                <td>15x</td>
                 <td>5x</td>
-                <td>~1.56%</td>
             </tr>
             <tr>
-                <td><i class="fas fa-lemon" style="color: #eab308;"></i> <strong>🍋🍋🍋 Triple Limón</strong></td>
+                <td><strong>🍊 Naranja</strong></td>
+                <td>25x</td>
+                <td>15x</td>
                 <td>5x</td>
-                <td>~1.56%</td>
+            </tr>
+            <tr>
+                <td><strong>🍋 Limón</strong></td>
+                <td>25x</td>
+                <td>15x</td>
+                <td>5x</td>
             </tr>
         </tbody>
     </table>
     
-    <h3><i class="fas fa-coins"></i> Ejemplos de Premios</h3>
-    <div class="highlight-box">
-        <h4>Apuesta: $100</h4>
+    <h3><i class="fas fa-coins"></i> Ejemplos de Premios JACKPOT 7️⃣</h3>
+    <div class="highlight-box" style="border: 3px solid #ef4444; background: rgba(239, 68, 68, 0.1);">
+        <h4>🎰 JACKPOT - Triple Siete 7️⃣7️⃣7️⃣</h4>
         <ul>
-            <li><strong>🌟🌟🌟:</strong> $100 × 100 = <strong>$10,000</strong> 💰</li>
-            <li><strong>7️⃣7️⃣7️⃣:</strong> $100 × 50 = <strong>$5,000</strong></li>
-            <li><strong>👑👑👑:</strong> $100 × 20 = <strong>$2,000</strong></li>
-            <li><strong>💎💎💎:</strong> $100 × 15 = <strong>$1,500</strong></li>
-            <li><strong>🍇🍇🍇:</strong> $100 × 8 = <strong>$800</strong></li>
-            <li><strong>🍎🍎🍎:</strong> $100 × 5 = <strong>$500</strong></li>
+            <li><strong>Apuesta $100:</strong> $100 × 200 = <strong style="color: #ef4444;">$20,000</strong> 🔥</li>
+            <li><strong>Apuesta $500:</strong> $500 × 200 = <strong style="color: #ef4444;">$100,000</strong> 💎</li>
+            <li><strong>Apuesta $1,000:</strong> $1,000 × 200 = <strong style="color: #ef4444;">$200,000</strong> 🚀</li>
+        </ul>
+        <h4>🌟 MEGA JACKPOT - 5 Sietes 7️⃣7️⃣7️⃣7️⃣7️⃣</h4>
+        <ul>
+            <li><strong>Apuesta $100:</strong> $100 × 1000 = <strong style="color: #ffd700;">$100,000</strong> 🎉💰</li>
+            <li><strong>Apuesta $1,000:</strong> $1,000 × 1000 = <strong style="color: #ffd700;">$1,000,000</strong> 🏆👑</li>
         </ul>
     </div>
     
+    <h3><i class="fas fa-coins"></i> Otros Ejemplos (Apuesta $100)</h3>
     <div class="highlight-box">
-        <h4>Apuesta: $1,000</h4>
         <ul>
-            <li><strong>🌟🌟🌟:</strong> $1,000 × 100 = <strong>$100,000</strong> 🎰🎉</li>
-            <li><strong>7️⃣7️⃣7️⃣:</strong> $1,000 × 50 = <strong>$50,000</strong></li>
-            <li><strong>👑👑👑:</strong> $1,000 × 20 = <strong>$20,000</strong></li>
-            <li><strong>💎💎💎:</strong> $1,000 × 15 = <strong>$15,000</strong></li>
+            <li><strong>🌟🌟🌟🌟🌟:</strong> $100 × 500 = <strong>$50,000</strong> 💫</li>
+            <li><strong>👑👑👑👑👑:</strong> $100 × 100 = <strong>$10,000</strong></li>
+            <li><strong>💎💎💎:</strong> $100 × 8 = <strong>$800</strong></li>
+            <li><strong>🍇🍇🍇:</strong> $100 × 6 = <strong>$600</strong></li>
         </ul>
     </div>
     
     <h3><i class="fas fa-percentage"></i> Información del Juego</h3>
     <ul>
-        <li><strong>RTP (Return to Player):</strong> ~87.5%</li>
-        <li><strong>Ventaja de la Casa:</strong> ~12.5%</li>
+        <li><strong>Líneas de Pago:</strong> 5 (superior, media, inferior, diagonal ↘️, diagonal ↗️)</li>
+        <li><strong>Símbolo Especial:</strong> 7️⃣ JACKPOT (muy raro, pagos masivos)</li>
         <li><strong>Apuesta Mínima:</strong> $10</li>
         <li><strong>Apuesta Máxima:</strong> $10,000</li>
-        <li><strong>Premio Máximo:</strong> 100x tu apuesta (🌟🌟🌟)</li>
+        <li><strong>Premio Máximo:</strong> 1000x (7️⃣ × 5)</li>
     </ul>
     
     <div class="highlight-box warning">
         <h4><i class="fas fa-chart-line"></i> Probabilidades</h4>
-        <p>Cada símbolo tiene aproximadamente 1.56% de probabilidad de salir en combinación triple. Los resultados son completamente aleatorios y cada giro es independiente del anterior.</p>
+        <p>Los símbolos tienen diferentes probabilidades de aparecer:</p>
+        <ul>
+            <li>🍎🍊🍋: Muy comunes (15% cada uno)</li>
+            <li>🍇: Común (12%)</li>
+            <li>💎: Poco común (8%)</li>
+            <li>👑: Raro (6%)</li>
+            <li>🌟: Muy raro (4%)</li>
+            <li>7️⃣: <strong>EXTREMADAMENTE RARO (2%)</strong> - JACKPOT 🎰</li>
+        </ul>
+        <p>Los resultados son completamente aleatorios y cada giro es independiente.</p>
     </div>
   `;
   
@@ -942,6 +986,7 @@ function createWinParticles() {
     const startY = Math.random() * 100;
     const endX = startX + (Math.random() - 0.5) * 50;
     const endY = startY - Math.random() * 100;
+    const duration = Math.random() * 2 + 1;
     
     particle.style.cssText = `
       position: absolute;
@@ -954,31 +999,34 @@ function createWinParticles() {
       pointer-events: none;
       z-index: 1000;
       box-shadow: 0 0 10px #fbbf24;
-      animation: particleFloat${i} ${Math.random() * 2 + 1}s ease-out forwards;
+      opacity: 1;
+      transition: all ${duration}s ease-out;
     `;
-    
-    // Crear animación única para cada partícula
-    const styleSheet = document.styleSheets[0];
-    const keyframes = `
-      @keyframes particleFloat${i} {
-        0% {
-          opacity: 1;
-          transform: translate(0, 0) scale(1);
-        }
-        100% {
-          opacity: 0;
-          transform: translate(${endX - startX}%, ${endY - startY}%) scale(0);
-        }
-      }
-    `;
-    styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
     
     machineScreen.appendChild(particle);
+    
+    // Animar usando Web Animations API (seguro y sin cross-origin issues)
+    requestAnimationFrame(() => {
+      particle.animate([
+        {
+          opacity: 1,
+          transform: 'translate(0, 0) scale(1)'
+        },
+        {
+          opacity: 0,
+          transform: `translate(${endX - startX}%, ${endY - startY}%) scale(0)`
+        }
+      ], {
+        duration: duration * 1000,
+        easing: 'ease-out',
+        fill: 'forwards'
+      });
+    });
     
     // Remover partícula después de la animación
     setTimeout(() => {
       particle.remove();
-    }, 3000);
+    }, duration * 1000 + 100);
   }
 }
 

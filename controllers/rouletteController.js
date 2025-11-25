@@ -1,7 +1,25 @@
 const pool = require('../config/db');
+const crypto = require('crypto');
 const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
+
+// Tipos de apuesta para ruleta
+const BET_TYPES = {
+  STRAIGHT: 'straight',
+  RED: 'red',
+  BLACK: 'black',
+  ODD: 'odd',
+  EVEN: 'even',
+  LOW: 'low',
+  HIGH: 'high',
+  DOZEN_1ST: 'dozen_1st',
+  DOZEN_2ND: 'dozen_2nd',
+  DOZEN_3RD: 'dozen_3rd',
+  COLUMN_1ST: 'column_1st',
+  COLUMN_2ND: 'column_2nd',
+  COLUMN_3RD: 'column_3rd'
+};
 
 exports.initGame = async (req, res) => {
   try {
@@ -58,6 +76,8 @@ exports.addBet = (req, res) => {
 };
 
 exports.spin = async (req, res) => {
+  let connection;
+  
   try {
     const { bets } = req.body;
     const userId = req.user.userId;
@@ -70,22 +90,53 @@ exports.spin = async (req, res) => {
     }
 
     const game = gameFactory.createGame('roulette');
-    const currentBalance = await balanceService.getOrCreateBalance(userId);
     const redNumbers = game.getRedNumbers();
     const blackNumbers = game.getBlackNumbers();
 
     const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
 
-    if (!await balanceService.canBet(userId, totalBet)) {
+    // Obtener conexión ANTES de validar saldo
+    connection = await pool.getConnection();
+    
+    // Iniciar transacción INMEDIATAMENTE
+    await connection.beginTransaction();
+
+    // Obtener saldo DENTRO de la transacción para lock
+    const [balanceRows] = await connection.query(
+      'SELECT balance FROM balances WHERE userId = ? FOR UPDATE',
+      [userId]
+    );
+
+    if (!balanceRows.length) {
+      await connection.rollback();
+      connection.release();
+      return res.status(400).json({
+        success: false,
+        message: 'Usuario sin saldo configurado'
+      });
+    }
+
+    const currentBalance = balanceRows[0].balance;
+
+    // Validar saldo suficiente
+    if (currentBalance < totalBet) {
+      await connection.rollback();
+      connection.release();
       return res.status(400).json({
         success: false,
         message: 'Saldo insuficiente'
       });
     }
 
-    await balanceService.updateBalance(userId, -totalBet);
+    // Descontar apuesta DENTRO de la transacción
+    await connection.query(
+      'UPDATE balances SET balance = balance - ? WHERE userId = ?',
+      [totalBet, userId]
+    );
 
-    const wheelNumber = Math.floor(Math.random() * 37);
+    // Generar número aleatorio SIN SESGO usando crypto
+    // crypto.randomInt es criptográficamente seguro y uniformemente distribuido
+    const wheelNumber = crypto.randomInt(0, 37);
     
     let winnings = 0;
     const winningBets = [];
@@ -95,21 +146,33 @@ exports.spin = async (req, res) => {
       
       if (isWinning) {
         const payout = calculatePayout(bet);
-        winnings += bet.amount * payout;
+        // El payout incluye: apuesta original + ganancias
+        const totalWin = bet.amount + (bet.amount * payout);
+        winnings += totalWin;
         winningBets.push({
           type: bet.type,
           amount: bet.amount,
           payout: payout,
-          win: bet.amount * payout
+          win: totalWin
         });
       }
     });
 
+    // Agregar ganancias DENTRO de la transacción
     if (winnings > 0) {
-      await balanceService.updateBalance(userId, winnings);
+      await connection.query(
+        'UPDATE balances SET balance = balance + ? WHERE userId = ?',
+        [winnings, userId]
+      );
     }
 
-    const newBalance = await balanceService.getBalance(userId);
+    // Obtener nuevo saldo DENTRO de la transacción
+    const [newBalanceRows] = await connection.query(
+      'SELECT balance FROM balances WHERE userId = ?',
+      [userId]
+    );
+    const newBalance = newBalanceRows[0].balance;
+
     const gameResult = winnings > totalBet ? 'win' : (winnings === totalBet ? 'tie' : 'loss');
     const gameData = {
       wheelNumber: wheelNumber,
@@ -127,6 +190,10 @@ exports.spin = async (req, res) => {
       gameData
     );
 
+    // Confirmar transacción solo si TODO salió bien
+    await connection.commit();
+    connection.release();
+
     res.json({
       success: true,
       wheelNumber: wheelNumber,
@@ -139,30 +206,26 @@ exports.spin = async (req, res) => {
       message: winnings > 0 ? `¡GANASTE! +$${winnings}` : 'Perdiste esta ronda'
     });
   } catch (error) {
+    // Revertir transacción en caso de error
+    if (connection) {
+      try {
+        await connection.rollback();
+        connection.release();
+      } catch (rollbackError) {
+        console.error('[ROULETTE ROLLBACK ERROR]', rollbackError);
+      }
+    }
+    
+    console.error('[ROULETTE ERROR]', error);
+    
     res.status(500).json({
       success: false,
-      message: 'Error al girar la ruleta'
+      message: 'Error al procesar el giro. Tu saldo no fue afectado.'
     });
   }
 };
 
 function checkBetWin(bet, wheelNumber, redNumbers, blackNumbers) {
-  const BET_TYPES = {
-    STRAIGHT: 'straight',
-    RED: 'red',
-    BLACK: 'black',
-    ODD: 'odd',
-    EVEN: 'even',
-    LOW: 'low',
-    HIGH: 'high',
-    DOZEN_1ST: 'dozen_1st',
-    DOZEN_2ND: 'dozen_2nd',
-    DOZEN_3RD: 'dozen_3rd',
-    COLUMN_1ST: 'column_1st',
-    COLUMN_2ND: 'column_2nd',
-    COLUMN_3RD: 'column_3rd'
-  };
-
   switch (bet.type) {
     case BET_TYPES.STRAIGHT:
       return bet.value === wheelNumber;

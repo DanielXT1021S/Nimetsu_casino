@@ -206,25 +206,40 @@ async function createUser() {
     alert('La contraseña debe tener al menos 6 caracteres');
     return;
   }
-  
-  const response = await adminFetch('/admin/api/user/create', {
-    method: 'POST',
-    body: JSON.stringify({ nickname, email, rut, password, balance, role })
-  });
-  
-  if (!response) {
-    alert('Error al crear usuario');
-    return;
-  }
-  
-  const data = await response.json();
-  
-  if (data.ok) {
-    alert('Usuario creado exitosamente');
-    closeModal();
-    refreshPage();
-  } else {
-    alert('Error: ' + data.message);
+  // Disable create button to prevent doble envío
+  const createBtn = document.querySelector('.modal-footer .btn-primary');
+  if (createBtn) createBtn.disabled = true;
+
+  try {
+    const response = await adminFetch('/admin/api/user/create', {
+      method: 'POST',
+      body: JSON.stringify({ nickname, email, rut, password, balance, role })
+    });
+
+    if (!response) {
+      // adminFetch ya redirigió en caso de 401/403 o hubo error de red
+      if (!navigator.onLine) {
+        alert('Sin conexión: verifica tu conexión a internet');
+      } else {
+        alert('No fue posible crear el usuario. Revisa tu sesión o inténtalo nuevamente.');
+      }
+      return;
+    }
+
+    const data = await response.json();
+
+    if (data.ok) {
+      alert('Usuario creado exitosamente');
+      closeModal();
+      refreshPage();
+    } else {
+      alert('Error: ' + (data.message || 'Error desconocido'));
+    }
+  } catch (err) {
+    console.error('Error creando usuario:', err);
+    alert('Ocurrió un error al crear el usuario. Revisa la consola para más detalles.');
+  } finally {
+    if (createBtn) createBtn.disabled = false;
   }
 }
 

@@ -89,50 +89,98 @@ exports.spinSlots = async (req, res) => {
       });
     }
 
+    // Sistema de pesos para símbolos
+    const symbolWeights = {
+      '🍎': 15, '🍊': 15, '🍋': 15, '🍇': 12,
+      '💎': 8, '👑': 6, '🌟': 4, '7️⃣': 2
+    };
+
+    // Función para seleccionar símbolo con pesos
+    const getWeightedSymbol = () => {
+      const totalWeight = Object.values(symbolWeights).reduce((a, b) => a + b, 0);
+      let random = Math.random() * totalWeight;
+      
+      for (const [symbol, weight] of Object.entries(symbolWeights)) {
+        random -= weight;
+        if (random <= 0) return symbol;
+      }
+      return symbols[0];
+    };
+
+    // Generar grid 5x3 con símbolos ponderados
     const grid = [];
     for (let col = 0; col < 5; col++) {
       const column = [];
       for (let row = 0; row < 3; row++) {
-        column.push(symbols[Math.floor(Math.random() * symbols.length)]);
+        column.push(getWeightedSymbol());
       }
       grid.push(column);
     }
 
-    const middleRow = grid.map(col => col[1]);
-    
-    let winAmount = 0;
-    let multiplier = 0;
-    let winningCells = [];
-    let resultString = '';
+    // Evaluar TODAS las líneas posibles
+    const lines = [
+      { name: 'top', cells: grid.map((col, i) => ({ col: i, row: 0, symbol: col[0] })) },
+      { name: 'middle', cells: grid.map((col, i) => ({ col: i, row: 1, symbol: col[1] })) },
+      { name: 'bottom', cells: grid.map((col, i) => ({ col: i, row: 2, symbol: col[2] })) },
+      { name: 'diag_down', cells: [
+        { col: 0, row: 0, symbol: grid[0][0] },
+        { col: 1, row: 1, symbol: grid[1][1] },
+        { col: 2, row: 1, symbol: grid[2][1] },
+        { col: 3, row: 1, symbol: grid[3][1] },
+        { col: 4, row: 2, symbol: grid[4][2] }
+      ]},
+      { name: 'diag_up', cells: [
+        { col: 0, row: 2, symbol: grid[0][2] },
+        { col: 1, row: 1, symbol: grid[1][1] },
+        { col: 2, row: 1, symbol: grid[2][1] },
+        { col: 3, row: 1, symbol: grid[3][1] },
+        { col: 4, row: 0, symbol: grid[4][0] }
+      ]}
+    ];
 
-    const firstSymbol = middleRow[0];
-    let consecutiveCount = 1;
-    
-    for (let i = 1; i < middleRow.length; i++) {
-      if (middleRow[i] === firstSymbol) {
-        consecutiveCount++;
-      } else {
-        break;
-      }
-    }
+    let bestWin = { winAmount: 0, multiplier: 0, cells: [], line: '', count: 0, symbol: '' };
 
-    if (consecutiveCount >= 3 && payouts[firstSymbol]) {
-      const payoutData = payouts[firstSymbol];
-      multiplier = payoutData[consecutiveCount] || payoutData[3] || 0;
+    // Evaluar cada línea
+    for (const line of lines) {
+      const firstSymbol = line.cells[0].symbol;
+      let consecutiveCount = 1;
       
-      if (multiplier > 0) {
-        winAmount = betAmount * multiplier;
-        resultString = `${firstSymbol} x${consecutiveCount}`;
+      for (let i = 1; i < line.cells.length; i++) {
+        if (line.cells[i].symbol === firstSymbol) {
+          consecutiveCount++;
+        } else {
+          break;
+        }
+      }
+
+      if (consecutiveCount >= 3 && payouts[firstSymbol]) {
+        const payoutData = payouts[firstSymbol];
+        const multiplier = payoutData[consecutiveCount] || payoutData[3] || 0;
         
-        for (let i = 0; i < consecutiveCount; i++) {
-          winningCells.push({ col: i, row: 1 });
+        if (multiplier > 0) {
+          const winAmount = betAmount * multiplier;
+          
+          // Guardar la mejor combinación
+          if (winAmount > bestWin.winAmount) {
+            bestWin = {
+              winAmount,
+              multiplier,
+              cells: line.cells.slice(0, consecutiveCount),
+              line: line.name,
+              count: consecutiveCount,
+              symbol: firstSymbol
+            };
+          }
         }
       }
     }
 
-    if (!resultString) {
-      resultString = 'Sin premio';
-    }
+    const winAmount = bestWin.winAmount;
+    const multiplier = bestWin.multiplier;
+    const winningCells = bestWin.cells.map(c => ({ col: c.col, row: c.row }));
+    const resultString = winAmount > 0 
+      ? `${bestWin.symbol} x${bestWin.count} (${bestWin.line})`
+      : 'Sin premio';
 
     await balanceService.updateBalance(userId, -betAmount);
     if (winAmount > 0) {
@@ -149,10 +197,10 @@ exports.spinSlots = async (req, res) => {
       gameResult,
       {
         grid,
-        middleRow,
         resultString,
         multiplier,
-        consecutiveCount
+        winningLine: bestWin.line,
+        consecutiveCount: bestWin.count
       }
     );
 
@@ -161,8 +209,8 @@ exports.spinSlots = async (req, res) => {
       ok: true,
       result: { 
         grid,
-        middleRow,
-        winningCells
+        winningCells,
+        winningLine: bestWin.line
       },
       resultString,
       betAmount,

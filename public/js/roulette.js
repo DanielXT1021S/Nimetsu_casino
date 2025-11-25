@@ -1144,22 +1144,49 @@ async function spinWheel() {
     console.error('Error spinning wheel:', error);
     
     // Mensajes de error específicos
-    let errorMessage = 'Error de conexión';
+    let errorMessage = 'Error desconocido';
+    let errorType = 'error';
     
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      errorMessage = 'No se pudo conectar con el servidor. Verifica tu conexión a internet.';
+      errorMessage = 'Sin conexión al servidor. Verifica tu internet.';
+      errorType = 'error';
+    } else if (error.message.includes('Tu saldo no fue afectado')) {
+      errorMessage = 'Error al procesar el giro. Tu saldo NO fue afectado y será actualizado.';
+      errorType = 'warning';
+    } else if (error.message.includes('Saldo insuficiente')) {
+      errorMessage = 'Saldo insuficiente para completar las apuestas.';
+      errorType = 'error';
     } else if (error.message.includes('servidor')) {
       errorMessage = error.message;
-    } else if (error.message.includes('token')) {
-      errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+      errorType = 'error';
+    } else if (error.message.includes('token') || error.message.includes('Sesión')) {
+      errorMessage = 'Sesión expirada. Redirigiendo a login...';
+      errorType = 'warning';
       setTimeout(() => {
         window.location.href = '/login';
       }, 2000);
     } else if (error.message.includes('Respuesta inválida')) {
-      errorMessage = 'Error interno del servidor. Intenta nuevamente.';
+      errorMessage = 'Error interno. Tu saldo será verificado desde el servidor.';
+      errorType = 'warning';
+    } else {
+      errorMessage = error.message || 'Error inesperado. Tu saldo será verificado.';
+      errorType = 'error';
     }
     
-    showToast(errorMessage, 'error');
+    showToast(errorMessage, errorType);
+    
+    // SIEMPRE recargar balance del servidor después de cualquier error
+    // para asegurar que el usuario vea su saldo real
+    setTimeout(async () => {
+      try {
+        await loadUserBalance();
+        showToast('✓ Saldo actualizado correctamente', 'success');
+      } catch (balanceError) {
+        console.error('Error loading balance:', balanceError);
+        showToast('No se pudo actualizar el saldo. Recarga la página.', 'error');
+      }
+    }, 1500);
+    
     rouletteState.isSpinning = false;
     const spinBtn = document.getElementById('spinBtn');
     if (spinBtn) spinBtn.disabled = false;
