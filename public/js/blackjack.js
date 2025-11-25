@@ -1,9 +1,7 @@
 // Blackjack Game
 'use strict';
 
-// ========================================
-// ESTADO DEL JUEGO
-// ========================================
+
 const gameState = {
     balance: 0,
     currentBet: 100,
@@ -17,9 +15,7 @@ const gameState = {
     gameResult: null
 };
 
-// ========================================
-// DOM ELEMENTS
-// ========================================
+
 const balanceAmount = document.getElementById('balanceAmount');
 const betAmountInput = document.getElementById('betAmountInput');
 const clearBtn = document.getElementById('clearBtn');
@@ -35,7 +31,6 @@ const menuOverlay = document.getElementById('menuOverlay');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 const toast = document.getElementById('toast');
 
-// Overlays de victoria/derrota
 const winOverlay = document.getElementById('winOverlay');
 const winAmount = document.getElementById('winAmount');
 const winHand = document.getElementById('winHand');
@@ -43,25 +38,18 @@ const loseOverlay = document.getElementById('loseOverlay');
 const loseAmount = document.getElementById('loseAmount');
 const loseMessage = document.getElementById('loseMessage');
 
-// Resultados en pantalla (como poker)
 const dealerResult = document.getElementById('dealerResult');
 const handResult = document.getElementById('handResult');
 
-// Botones de juego
 const dealBtn = document.getElementById('dealBtn');
 const hitBtn = document.getElementById('hitBtn');
 const standBtn = document.getElementById('standBtn');
 
-// Estado del panel de fichas
+
 let chipsExpanded = false;
 
-// ========================================
-// INICIALIZACIÓN
-// ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Blackjack game loading...');
-    
-    // Inicializar estado colapsado en móvil
+   
     if (chipsSection) {
         chipsSection.classList.add('collapsed');
     }
@@ -76,9 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateButtonStates();
 });
 
-// ========================================
-// CARGAR SALDO DEL USUARIO
-// ========================================
 async function loadUserBalance() {
     try {
         const token = localStorage.getItem('nimetsuCasinoToken');
@@ -117,9 +102,6 @@ async function loadUserBalance() {
     }
 }
 
-// ========================================
-// ACTUALIZAR UI
-// ========================================
 function updateBalance() {
     if (balanceAmount) {
         balanceAmount.textContent = `$${gameState.balance.toLocaleString()}`;
@@ -139,9 +121,6 @@ function updateCurrentBetDisplay() {
     }
 }
 
-// ========================================
-// FUNCIONES DE APUESTA
-// ========================================
 function clearBet() {
     gameState.currentBet = 10;
     updateCurrentBetDisplay();
@@ -172,15 +151,11 @@ function setBet(amount, accumulate = false) {
     
     updateCurrentBetDisplay();
     
-    // Actualizar estado visual de las fichas
     document.querySelectorAll('.casino-chip').forEach(chip => {
         chip.classList.remove('selected');
     });
 }
 
-// ========================================
-// TOGGLE CHIPS PANEL
-// ========================================
 function toggleChipsPanel() {
     chipsExpanded = !chipsExpanded;
     
@@ -195,17 +170,13 @@ function toggleChipsPanel() {
         document.querySelector('.bet-display-group')?.classList.add('collapsed');
         document.querySelector('.compact-bet-display')?.classList.add('show');
     }
-    
-    // Rotar icono
+   
     const icon = toggleChipsBtn?.querySelector('.toggle-icon');
     if (icon) {
         icon.style.transform = chipsExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 }
 
-// ========================================
-// MENÚ LATERAL
-// ========================================
 function openMenu() {
     if (sideMenu) {
         sideMenu.classList.add('open');
@@ -233,7 +204,6 @@ function setupMenuListeners() {
         fullscreenBtn.addEventListener('click', toggleFullscreen);
     }
     
-    // Botones del menú
     const rulesBtn = document.getElementById('rulesBtn');
     const prizesBtn = document.getElementById('prizesBtn');
     
@@ -250,6 +220,31 @@ function setupMenuListeners() {
             showPrizesModal();
         });
     }
+    
+    const logoutLinks = document.querySelectorAll('a[href="/logout"]');
+    logoutLinks.forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await handleLogout();
+        });
+    });
+}
+
+async function handleLogout() {
+    try {
+        await fetch('/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (err) {}
+    
+    localStorage.removeItem('nimetsuCasinoToken');
+    localStorage.removeItem('nimetsuCasinoUser');
+    localStorage.removeItem('nimetsuCasinoBalance');
+    
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    
+    window.location.href = '/login';
 }
 
 function toggleFullscreen() {
@@ -264,9 +259,6 @@ function toggleFullscreen() {
     }
 }
 
-// ========================================
-// MODALES
-// ========================================
 function showRulesModal() {
     const modal = document.getElementById('rulesModal');
     const body = document.getElementById('rulesModalBody');
@@ -310,8 +302,6 @@ function showRulesModal() {
     if (modal) {
         modal.classList.add('show');
     }
-    
-    // Event listeners para cerrar
     const closeBtn = document.getElementById('rulesModalClose');
     const overlay = document.getElementById('rulesModalOverlay');
     
@@ -405,7 +395,6 @@ function showPrizesModal() {
     
     closeMenu();
     
-    // Event listeners para cerrar
     const closeBtn = document.getElementById('prizesModalClose');
     const overlay = document.getElementById('prizesModalOverlay');
     
@@ -417,16 +406,11 @@ function showPrizesModal() {
     }
 }
 
-// ========================================
-// EVENT LISTENERS
-// ========================================
 function setupEventListeners() {
-    // Toggle chips panel
     if (toggleChipsBtn) {
         toggleChipsBtn.addEventListener('click', toggleChipsPanel);
     }
 
-    // Botones de apuesta
     if (clearBtn) {
         clearBtn.addEventListener('click', clearBet);
     }
@@ -443,7 +427,6 @@ function setupEventListeners() {
         });
     }
 
-    // Input manual de apuesta
     if (betAmountInput) {
         betAmountInput.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
@@ -453,42 +436,34 @@ function setupEventListeners() {
         });
     }
 
-    // Fichas de casino
     document.querySelectorAll('.casino-chip').forEach(chip => {
         chip.addEventListener('click', function() {
             const value = parseInt(this.dataset.value);
-            
-            // Marcar ficha como seleccionada
+           
             document.querySelectorAll('.casino-chip').forEach(c => c.classList.remove('selected'));
             this.classList.add('selected');
             
-            // Acumular valor
+         
             setBet(value, true);
         });
     });
 
-    // Botones de juego
     if (dealBtn) dealBtn.addEventListener('click', dealHand);
     if (hitBtn) hitBtn.addEventListener('click', hitHand);
     if (standBtn) standBtn.addEventListener('click', standHand);
 }
 
-// ========================================
-// LÓGICA DEL JUEGO
-// ========================================
 function resetGameState() {
-    // Limpiar las manos de la partida anterior
     gameState.playerHand = [];
     gameState.dealerHand = [];
     gameState.playerValue = 0;
     gameState.dealerValue = 0;
     gameState.gameInProgress = false;
     gameState.gameResult = null;
-    console.log('[BLACKJACK] Estado limpiado');
 }
 
 async function dealHand() {
-    // Limpiar estado anterior
+  
     resetGameState();
     
     const betAmount = gameState.currentBet || 100;
@@ -522,7 +497,6 @@ async function dealHand() {
             return;
         }
 
-        // Update game state
         gameState.playerHand = data.playerHand;
         gameState.dealerHand = data.dealerHand;
         gameState.playerValue = data.playerValue;
@@ -530,12 +504,10 @@ async function dealHand() {
         gameState.gameInProgress = true;
         gameState.balance = data.newBalance;
 
-        // Update UI
         updateBalance();
         displayCards();
         updateButtonStates();
 
-        // Check for blackjack
         if (data.playerBlackjack && data.dealerBlackjack) {
             gameState.gameInProgress = false;
             gameState.balance = data.newBalance + gameState.currentBet;
@@ -589,7 +561,6 @@ async function hitHand() {
         gameState.playerHand = data.playerHand;
         gameState.playerValue = data.playerValue;
 
-        // Añadir la nueva carta con animación
         addNewCardWithAnimation(true);
 
         if (data.bust) {
@@ -603,7 +574,6 @@ async function hitHand() {
         }
 
     } catch (error) {
-        console.error('Error hitting:', error);
         showToast('Error al pedir carta', 'error');
     }
 }
@@ -638,24 +608,21 @@ async function standHand() {
         gameState.gameResult = data.result;
         gameState.balance = data.newBalance;
 
-        // Revelar carta oculta del dealer
         revealDealerCard();
         
-        // Esperar a que se revele la carta oculta antes de añadir nuevas
         setTimeout(() => {
             const cardsToAdd = data.dealerHand.length - gameState.dealerHand.length;
             gameState.dealerHand = data.dealerHand;
             gameState.dealerValue = data.dealerValue;
             
             if (cardsToAdd > 0) {
-                // Añadir cartas adicionales del dealer una por una
+             
                 for (let i = 0; i < cardsToAdd; i++) {
                     setTimeout(() => {
                         addNewCardWithAnimation(false);
                     }, i * 700);
                 }
-                
-                // Mostrar resultado después de todas las animaciones
+             
                 setTimeout(() => {
                     updateHandValues();
                     updateBalance();
@@ -663,7 +630,7 @@ async function standHand() {
                     updateButtonStates();
                 }, cardsToAdd * 700 + 500);
             } else {
-                // Sin cartas adicionales, mostrar resultado inmediatamente
+            
                 setTimeout(() => {
                     updateHandValues();
                     updateBalance();
@@ -674,25 +641,20 @@ async function standHand() {
         }, 600);
 
     } catch (error) {
-        console.error('Error standing:', error);
+      
         showToast('Error al terminar juego', 'error');
     }
 }
 
-// ========================================
-// DISPLAY FUNCTIONS
-// ========================================
 function displayCards() {
     const dealerDisplay = document.getElementById('dealerCards');
     const playerDisplay = document.getElementById('playerCards');
 
     if (!dealerDisplay || !playerDisplay) return;
 
-    // Limpiar contenedores
     dealerDisplay.innerHTML = '';
     playerDisplay.innerHTML = '';
 
-    // Mostrar cartas del dealer con animación
     gameState.dealerHand.forEach((card, index) => {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -701,7 +663,6 @@ function displayCards() {
         dealerDisplay.appendChild(cardDiv);
 
         setTimeout(() => {
-            // Segunda carta oculta si el juego está en progreso
             const shouldHideCard = index === 1 && gameState.gameInProgress;
             
             if (!shouldHideCard && card.rank && card.suit) {
@@ -729,7 +690,6 @@ function displayCards() {
         }, index * 400);
     });
 
-    // Mostrar cartas del jugador con animación
     gameState.playerHand.forEach((card, index) => {
         const cardDiv = document.createElement('div');
         cardDiv.className = 'card';
@@ -836,7 +796,6 @@ function updateHandValues() {
     const dealerValueEl = document.getElementById('dealerScore');
     const playerValueEl = document.getElementById('playerScore');
 
-    // Si el juego está en progreso, mostrar solo la primera carta del dealer
     let visibleDealerValue = gameState.dealerValue;
     if (gameState.gameInProgress && gameState.dealerHand.length > 0) {
         visibleDealerValue = calculateDealerVisibleValue();
@@ -847,7 +806,7 @@ function updateHandValues() {
 }
 
 function calculateDealerVisibleValue() {
-    // Calcula el valor visible del dealer (solo primera carta durante el juego)
+
     if (gameState.dealerHand.length === 0) return 0;
     
     const card = gameState.dealerHand[0];
@@ -890,7 +849,6 @@ function displayResult(data) {
     }
 }
 
-// Mostrar overlay de victoria
 function showWinOverlay(amount, message) {
     if (winAmount) {
         winAmount.textContent = `+$${amount.toLocaleString()}`;
@@ -906,7 +864,6 @@ function showWinOverlay(amount, message) {
     }
 }
 
-// Mostrar overlay de pérdida
 function showLoseOverlay(amount, message) {
     if (loseAmount) {
         loseAmount.textContent = `-$${amount.toLocaleString()}`;
@@ -923,7 +880,6 @@ function showLoseOverlay(amount, message) {
 }
 
 function showGameStatus(message, statusClass) {
-    // Ya no usamos esto, usamos overlays
 }
 
 function clearGameStatus() {
@@ -947,9 +903,6 @@ function updateButtonStates() {
     }
 }
 
-// ========================================
-// UTILIDADES
-// ========================================
 function showToast(message, type = 'info') {
     let toast = document.getElementById('toast');
     

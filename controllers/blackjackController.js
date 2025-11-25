@@ -179,28 +179,17 @@ async function stand(req, res) {
       });
     }
 
-    console.log(`[BLACKJACK STAND] Jugador: ${getHandDescription(playerHand)} | Dealer: ${getHandDescription(dealerHand)}`);
     
     let dealer = [...dealerHand];
     let dealerValue = calculateHand(dealer);
 
-    console.log(`[BLACKJACK] Dealer comienza con: ${getHandDescription(dealer)} = ${dealerValue}`);
-
-    // El dealer debe pedir cartas mientras tenga 16 o menos (Hard rule: 17+)
     while (dealerValue < 17) {
       const newCard = drawCards(1)[0];
       dealer.push(newCard);
       dealerValue = calculateHand(dealer);
       
-      console.log(`[BLACKJACK] Dealer pidió: ${newCard.rank}${newCard.suit} → Mano: ${getHandDescription(dealer)} = ${dealerValue}`);
     }
     
-    // Una vez que dealer tiene 17 o más, se planta
-    console.log(`[BLACKJACK] Dealer se planta con ${dealerValue} (${getHandDescription(dealer)})`);
-    
-    if (dealerValue > 21) {
-      console.log(`[BLACKJACK] ¡DEALER BUST! (${dealerValue})`);
-    }
 
     const playerValue = calculateHand(playerHand);
 
@@ -223,7 +212,6 @@ async function stand(req, res) {
     if (result === 'win' || result === 'blackjack') gameResult = 'win';
     else if (result === 'push') gameResult = 'tie';
 
-    // Generar mensaje de resultado descriptivo
     let resultMessage = 'Dealer gana';
     if (result === 'blackjack') {
       resultMessage = '¡Blackjack Natural!';
@@ -298,7 +286,6 @@ function calculateHand(hand) {
   let total = 0;
   let aces = 0;
 
-  // Contar todas las cartas y los ases
   for (let card of hand) {
     if (card.rank === 'A') {
       aces++;
@@ -313,9 +300,8 @@ function calculateHand(hand) {
     }
   }
 
-  // Ajustar ases de 11 a 1 si el total se pasa de 21
   while (total > 21 && aces > 0) {
-    total -= 10;  // Cambiar un as de 11 a 1 (resta 10 del total)
+    total -= 10; 
     aces--;
   }
 
@@ -333,24 +319,21 @@ function isBlackjack(hand) {
 }
 
 function getHandDescription(hand) {
-  // Función helper para debugging
   return hand.map(card => `${card.rank}${card.suit}`).join(', ');
 }
 
 function determineWinner(playerValue, dealerValue, playerHand) {
-  // Si el jugador se pasó, pierde siempre
+
   if (playerValue > 21) {
     return 'lose';
   }
 
-  // Si el dealer se pasó, el jugador gana
   if (dealerValue > 21) {
     return 'win';
   }
 
-  // Comparar valores cuando ambos están dentro de 21
   if (playerValue > dealerValue) {
-    // Blackjack natural (As + 10) solo con 2 cartas
+  
     if (playerValue === 21 && playerHand.length === 2) {
       return 'blackjack';
     }
@@ -358,7 +341,6 @@ function determineWinner(playerValue, dealerValue, playerHand) {
   } else if (playerValue === dealerValue) {
     return 'push';
   } else {
-    // dealer tiene más que el jugador
     return 'lose';
   }
 }

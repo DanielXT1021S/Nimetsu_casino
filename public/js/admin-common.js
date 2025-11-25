@@ -1,11 +1,21 @@
-// admin-common.js - Funciones comunes para panel de administración
+// admin-common.js
+(function() {
+  const token = localStorage.getItem('nimetsuCasinoToken') || localStorage.getItem('token');
+  
+  if (!token) {
+    window.location.replace('/login');
+    throw new Error('No authenticated - redirecting');
+  }
+})();
 
-// NOTA: La verificación de autenticación se hace en el SERVIDOR (middleware mustBeAdminPage)
-// No se hace verificación en el cliente por seguridad
-
-// Hacer peticiones autenticadas
 async function adminFetch(url, options = {}) {
   const token = localStorage.getItem('nimetsuCasinoToken') || localStorage.getItem('token');
+  
+  if (!token) {
+    console.error('No token found, redirecting to login');
+    window.location.replace('/login');
+    return null;
+  }
   
   const defaultOptions = {
     headers: {
@@ -27,11 +37,16 @@ async function adminFetch(url, options = {}) {
   try {
     const response = await fetch(url, mergedOptions);
     
-    if (response.status === 401 || response.status === 403) {
-      alert('Sesión expirada o sin permisos');
+    if (response.status === 401) {
+      alert('Sesión expirada. Por favor, inicia sesión nuevamente.');
       localStorage.clear();
       window.location.href = '/login';
       return null;
+    }
+    
+    if (response.status === 403) {
+      alert('No tienes permisos para realizar esta acción.');
+      return response;
     }
     
     return response;
@@ -41,7 +56,6 @@ async function adminFetch(url, options = {}) {
   }
 }
 
-// Formatear números como dinero
 function formatMoney(amount) {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -50,7 +64,6 @@ function formatMoney(amount) {
   }).format(amount);
 }
 
-// Formatear fechas
 function formatDate(dateString) {
   return new Date(dateString).toLocaleString('es-CL', {
     year: 'numeric',
@@ -61,7 +74,6 @@ function formatDate(dateString) {
   });
 }
 
-// Cerrar sesión
 function adminLogout() {
   if (confirm('¿Seguro que deseas cerrar sesión?')) {
     localStorage.clear();
@@ -69,7 +81,6 @@ function adminLogout() {
   }
 }
 
-// Recargar página
 function refreshPage() {
   window.location.reload();
 }

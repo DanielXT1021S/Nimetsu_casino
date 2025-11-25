@@ -1,4 +1,4 @@
-// Elements
+
 const customAmountInput = document.getElementById('customAmount');
 const fichasReceivedEl = document.getElementById('fichasReceived');
 const btnDepositCustom = document.getElementById('btnDepositCustom');
@@ -13,7 +13,7 @@ const sidebarItems = document.querySelectorAll('.sidebar-item');
 const pageTitle = document.getElementById('pageTitle');
 const pageDescription = document.getElementById('pageDescription');
 
-// Withdraw elements
+
 const btnWithdrawBank = document.getElementById('btnWithdrawBank');
 const withdrawBankAmount = document.getElementById('withdrawBankAmount');
 const bankSelect = document.getElementById('bankSelect');
@@ -21,7 +21,6 @@ const rutInput = document.getElementById('rutInput');
 const accountTypeSelect = document.getElementById('accountTypeSelect');
 const accountNumberInput = document.getElementById('accountNumberInput');
 
-// Crypto elements
 const cryptoOptions = document.querySelectorAll('.crypto-option');
 const btnWithdrawCrypto = document.getElementById('btnWithdrawCrypto');
 const withdrawCryptoAmount = document.getElementById('withdrawCryptoAmount');
@@ -31,17 +30,43 @@ const cryptoSymbol = document.getElementById('cryptoSymbol');
 
 let selectedCrypto = 'btc';
 
-// Load user data
 document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('nimetsuCasinoToken');
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
+  
   loadUserData();
   loadBonusPackages();
   loadTransactionHistory();
   
-  // Auto-refresh balance every 30 seconds
   setInterval(loadBalance, 30000);
+
+  setTimeout(() => {
+    const hash = window.location.hash;
+  
+    
+    if (hash === '#withdraw') {
+
+      const withdrawBtn = document.querySelector('[data-section="withdraw-bank"]');
+      if (withdrawBtn) {
+        withdrawBtn.click();
+      
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+
+      }
+    } else if (hash === '#history') {
+      const historyBtn = document.querySelector('[data-section="history"]');
+      if (historyBtn) {
+        historyBtn.click();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }, 100);
 });
 
-// Load user data
 async function loadUserData() {
   const token = localStorage.getItem('nimetsuCasinoToken');
   const user = JSON.parse(localStorage.getItem('nimetsuCasinoUser') || '{}');
@@ -53,11 +78,13 @@ async function loadUserData() {
   await loadBalance();
 }
 
-// Load balance
 async function loadBalance() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
-    if (!token) return;
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
 
     const res = await fetch('/user/me', {
       headers: {
@@ -71,11 +98,9 @@ async function loadBalance() {
       balanceAmountEl.textContent = `$${data.balance.toLocaleString('es-CL')}`;
     }
   } catch (err) {
-    console.error('Error loading balance:', err);
   }
 }
 
-// Refresh balance button
 refreshBalanceBtn.addEventListener('click', async () => {
   refreshBalanceBtn.classList.add('loading');
   await loadBalance();
@@ -85,30 +110,24 @@ refreshBalanceBtn.addEventListener('click', async () => {
   }, 500);
 });
 
-// Account button
 accountBtn.addEventListener('click', () => {
   window.location.href = '/dashboard';
 });
 
-// Sidebar navigation
 sidebarItems.forEach(item => {
   item.addEventListener('click', () => {
     const section = item.dataset.section;
     
-    // Update active sidebar item
     sidebarItems.forEach(i => i.classList.remove('active'));
     item.classList.add('active');
-    
-    // Update active content section
+  
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.getElementById(`${section}-section`).classList.add('active');
     
-    // Update page title and description
     updatePageHeader(section);
   });
 });
 
-// Update page header based on section
 function updatePageHeader(section) {
   const headers = {
     'deposit': {
@@ -133,16 +152,13 @@ function updatePageHeader(section) {
   pageDescription.textContent = headers[section].description;
 }
 
-// Custom amount input
 customAmountInput.addEventListener('input', () => {
   const amount = parseInt(customAmountInput.value) || 0;
   fichasReceivedEl.textContent = amount.toLocaleString('es-CL');
   
-  // Enable/disable button
   btnDepositCustom.disabled = amount < 500;
 });
 
-// Deposit custom amount
 btnDepositCustom.addEventListener('click', async () => {
   const amount = parseInt(customAmountInput.value);
   
@@ -154,7 +170,6 @@ btnDepositCustom.addEventListener('click', async () => {
   await initiateCustomDeposit(amount);
 });
 
-// Quick amount buttons
 quickAmountBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const amount = parseInt(btn.dataset.amount);
@@ -164,7 +179,6 @@ quickAmountBtns.forEach(btn => {
   });
 });
 
-// Load bonus packages
 async function loadBonusPackages() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
@@ -186,9 +200,7 @@ async function loadBonusPackages() {
   }
 }
 
-// Display bonus packages
 function displayBonusPackages(packages) {
-  // Filter only packages with bonus
   const bonusPackages = Object.entries(packages).filter(([id, pkg]) => pkg.bonus > 0);
   
   bonusPackagesEl.innerHTML = bonusPackages.map(([id, pkg]) => {
@@ -211,7 +223,6 @@ function displayBonusPackages(packages) {
     `;
   }).join('');
 
-  // Add event listeners to buy buttons
   document.querySelectorAll('.btn-buy-package').forEach(btn => {
     btn.addEventListener('click', () => {
       const packageId = btn.dataset.packageId;
@@ -220,7 +231,6 @@ function displayBonusPackages(packages) {
   });
 }
 
-// Initiate custom deposit
 async function initiateCustomDeposit(amount) {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
@@ -246,15 +256,12 @@ async function initiateCustomDeposit(amount) {
       throw new Error(data.message || 'Error al crear preferencia de pago');
     }
 
-    // Redirect to MercadoPago
     window.location.href = data.init_point;
   } catch (err) {
-    console.error('Error initiating deposit:', err);
     showToast('Error al procesar el depósito', 'error');
   }
 }
 
-// Initiate package purchase
 async function initiatePackagePurchase(packageId) {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
@@ -280,15 +287,13 @@ async function initiatePackagePurchase(packageId) {
       throw new Error(data.message || 'Error al crear preferencia de pago');
     }
 
-    // Redirect to MercadoPago
     window.location.href = data.init_point;
   } catch (err) {
-    console.error('Error initiating purchase:', err);
+  
     showToast('Error al procesar la compra', 'error');
   }
 }
 
-// Bank withdrawal validation
 function validateBankForm() {
   const isValid = bankSelect.value && 
                   rutInput.value && 
@@ -305,17 +310,8 @@ accountTypeSelect.addEventListener('change', validateBankForm);
 accountNumberInput.addEventListener('input', validateBankForm);
 withdrawBankAmount.addEventListener('input', validateBankForm);
 
-// Bank withdraw button
 btnWithdrawBank.addEventListener('click', async () => {
   const amount = parseInt(withdrawBankAmount.value);
-  
-  console.log('[FRONTEND] Iniciando retiro bancario:', {
-    amount,
-    bankName: bankSelect.value,
-    accountType: accountTypeSelect.value,
-    accountNumber: accountNumberInput.value,
-    accountRut: rutInput.value
-  });
   
   if (amount < 5000) {
     showToast('El monto mínimo para retiro bancario es $5,000 CLP', 'error');
@@ -361,7 +357,6 @@ btnWithdrawBank.addEventListener('click', async () => {
       saveMethod: false
     };
 
-    console.log('[FRONTEND] Enviando solicitud:', requestData);
 
     const res = await fetch('/withdraw/bank', {
       method: 'POST',
@@ -372,43 +367,39 @@ btnWithdrawBank.addEventListener('click', async () => {
       body: JSON.stringify(requestData)
     });
 
-    console.log('[FRONTEND] Respuesta HTTP:', res.status);
-    console.log('[FRONTEND] Content-Type:', res.headers.get('content-type'));
 
-    // Verificar si la respuesta es JSON
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await res.text();
-      console.error('[FRONTEND] Respuesta no es JSON:', text);
+
       throw new Error('El servidor no devolvió una respuesta JSON válida. Puede ser un error 404 o 500.');
     }
 
     const data = await res.json();
-    console.log('[FRONTEND] Respuesta data:', data);
 
     if (data.success) {
       showToast('Solicitud de retiro creada exitosamente', 'success');
-      
-      // Limpiar formulario
+   
       withdrawBankAmount.value = '';
       accountNumberInput.value = '';
       rutInput.value = '';
       bankSelect.value = '';
       accountTypeSelect.value = '';
       
-      // Recargar balance e historial
-      await loadBalance();
-      await loadTransactionHistory();
+      setTimeout(async () => {
       
-      // Cambiar a historial
-      setTimeout(() => {
-        document.querySelector('[data-section="history"]').click();
+        await loadBalance();
+        await loadTransactionHistory();
+      
+        const historyBtn = document.querySelector('[data-section="history"]');
+        if (historyBtn) {
+          historyBtn.click();
+        }
       }, 500);
     } else {
       showToast(data.message || 'Error al procesar retiro', 'error');
     }
   } catch (err) {
-    console.error('[FRONTEND] Error:', err);
     showToast('Error al procesar retiro: ' + err.message, 'error');
   } finally {
     btnWithdrawBank.disabled = false;
@@ -416,7 +407,6 @@ btnWithdrawBank.addEventListener('click', async () => {
   }
 });
 
-// Crypto option selection
 cryptoOptions.forEach(option => {
   option.addEventListener('click', () => {
     cryptoOptions.forEach(o => o.classList.remove('active'));
@@ -427,7 +417,6 @@ cryptoOptions.forEach(option => {
   });
 });
 
-// Crypto withdrawal validation
 function validateCryptoForm() {
   const isValid = walletAddress.value.length > 20 && 
                   withdrawCryptoAmount.value >= 10000;
@@ -441,19 +430,17 @@ withdrawCryptoAmount.addEventListener('input', () => {
   updateCryptoConversion();
 });
 
-// Update crypto conversion (mock rates)
 function updateCryptoConversion() {
   const amount = parseInt(withdrawCryptoAmount.value) || 0;
   const rates = {
-    btc: 0.000000012350276, // 1 CLP ≈ 0.0000115 BTC (example)
-    usdt: 0.0011    // 1 CLP ≈ 0.00112 USDT (example)
+    btc: 0.000000012350276, 
+    usdt: 0.0011  
   };
   
   const converted = (amount * rates[selectedCrypto]).toFixed(selectedCrypto === 'btc' ? 8 : 2);
   cryptoEquivalent.textContent = converted;
 }
 
-// Crypto withdraw button
 btnWithdrawCrypto.addEventListener('click', async () => {
   const amount = parseInt(withdrawCryptoAmount.value);
   
@@ -494,22 +481,24 @@ btnWithdrawCrypto.addEventListener('click', async () => {
 
     if (data.success) {
       showToast(`Solicitud de retiro creada. Recibirás ${data.cryptoAmount} ${selectedCrypto.toUpperCase()}`, 'success');
-      
-      // Limpiar formulario
+     
       withdrawCryptoAmount.value = '';
       walletAddress.value = '';
       
-      // Recargar balance e historial
-      await loadBalance();
-      await loadTransactionHistory();
+      setTimeout(async () => {
+        
+        await loadBalance();
+        await loadTransactionHistory();
       
-      // Cambiar a historial
-      document.querySelector('[data-section="history"]').click();
+        const historyBtn = document.querySelector('[data-section="history"]');
+        if (historyBtn) {
+          historyBtn.click();
+        }
+      }, 500);
     } else {
       showToast(data.message || 'Error al procesar retiro', 'error');
     }
   } catch (err) {
-    console.error('Error:', err);
     showToast('Error al procesar retiro', 'error');
   } finally {
     btnWithdrawCrypto.disabled = false;
@@ -517,11 +506,12 @@ btnWithdrawCrypto.addEventListener('click', async () => {
   }
 });
 
-// Load transaction history
 async function loadTransactionHistory() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
-    if (!token) return;
+    if (!token) {
+      return;
+    }
 
     const res = await fetch('/withdraw/history?limit=20', {
       headers: {
@@ -530,16 +520,29 @@ async function loadTransactionHistory() {
       }
     });
 
-    if (!res.ok) throw new Error('Error loading history');
+    if (!res.ok) {
+      const errorText = await res.text();
+
+      throw new Error('Error loading history');
+    }
 
     const data = await res.json();
+  
     displayTransactionHistory(data.transactions);
   } catch (err) {
-    console.error('Error loading history:', err);
+    
+    const transactionsList = document.getElementById('transactionsList');
+    if (transactionsList) {
+      transactionsList.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Error al cargar el historial</p>
+        </div>
+      `;
+    }
   }
 }
 
-// Display transaction history
 function displayTransactionHistory(transactions) {
   const transactionsList = document.getElementById('transactionsList');
   
@@ -558,6 +561,7 @@ function displayTransactionHistory(transactions) {
       pending: '#f59e0b',
       processing: '#3b82f6',
       completed: '#10b981',
+      approved: '#10b981',
       rejected: '#ef4444',
       cancelled: '#64748b'
     };
@@ -566,8 +570,18 @@ function displayTransactionHistory(transactions) {
       pending: 'fa-clock',
       processing: 'fa-spinner fa-spin',
       completed: 'fa-check-circle',
+      approved: 'fa-check-circle',
       rejected: 'fa-times-circle',
       cancelled: 'fa-ban'
+    };
+
+    const statusLabels = {
+      pending: 'Pendiente',
+      processing: 'Procesando',
+      completed: 'Completado',
+      approved: 'Aprobado',
+      rejected: 'Rechazado',
+      cancelled: 'Cancelado'
     };
 
     const typeInfo = tx.type === 'deposit' 
@@ -592,44 +606,43 @@ function displayTransactionHistory(transactions) {
     return `
       <div class="transaction-item" style="border-left: 4px solid ${typeInfo.color}">
         <div class="transaction-header">
-          <div class="transaction-type">
-            <i class="fas ${typeInfo.icon}" style="color: ${typeInfo.color}"></i>
+          <div class="transaction-type" style="color: ${typeInfo.color}">
+            <i class="fas ${typeInfo.icon}"></i>
             <span>${typeInfo.text}</span>
           </div>
-          <div class="transaction-status" style="color: ${statusColors[tx.status]}">
+          <div class="transaction-status" style="background: ${statusColors[tx.status]}20; color: ${statusColors[tx.status]}; border: 1px solid ${statusColors[tx.status]}40;">
             <i class="fas ${statusIcons[tx.status]}"></i>
-            <span>${tx.status}</span>
+            <span>${statusLabels[tx.status] || tx.status}</span>
           </div>
         </div>
         <div class="transaction-body">
           <div class="transaction-info">
             <span class="transaction-method">${methodText[tx.method] || tx.method}</span>
-            ${tx.bank_name ? `<span class="transaction-detail">• ${tx.bank_name}</span>` : ''}
-            ${tx.crypto_type ? `<span class="transaction-detail">• ${tx.crypto_type.toUpperCase()}</span>` : ''}
+            ${tx.bank_name ? `<span class="transaction-detail"><i class="fas fa-university"></i> ${tx.bank_name}</span>` : ''}
+            ${tx.account_type ? `<span class="transaction-detail"><i class="fas fa-id-card"></i> Cuenta ${tx.account_type}</span>` : ''}
+            ${tx.crypto_type ? `<span class="transaction-detail"><i class="fab fa-bitcoin"></i> ${tx.crypto_type.toUpperCase()}</span>` : ''}
+            ${tx.payment_id ? `<span class="transaction-detail"><i class="fas fa-hashtag"></i> ${tx.payment_id}</span>` : ''}
           </div>
           <div class="transaction-amount" style="color: ${typeInfo.color}">
-            ${tx.type === 'deposit' ? '+' : '-'}$${tx.amount.toLocaleString('es-CL')}
+            ${tx.type === 'deposit' ? '+' : '-'}$${(tx.amount || 0).toLocaleString('es-CL')}
           </div>
         </div>
         <div class="transaction-footer">
           <span class="transaction-date">${date}</span>
-          <span class="transaction-fichas">${tx.fichas.toLocaleString('es-CL')} fichas</span>
+          <span class="transaction-fichas">${(tx.fichas || 0).toLocaleString('es-CL')} fichas</span>
         </div>
       </div>
     `;
   }).join('');
 }
 
-// Filter buttons
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const filter = btn.dataset.filter;
     
-    // Update active button
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Load filtered transactions
     try {
       const token = localStorage.getItem('nimetsuCasinoToken');
       let url = '/withdraw/history?limit=20';
@@ -648,38 +661,44 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
       const data = await res.json();
       displayTransactionHistory(data.transactions);
     } catch (err) {
-      console.error('Error filtering transactions:', err);
+
     }
   });
 });
 
-// Toast notification
 function showToast(message, type = 'success') {
-  const toastMessage = document.getElementById('toastMessage');
-  const icon = toast.querySelector('i');
+  const toast = document.getElementById('toast');
+  if (!toast) {
+    return;
+  }
+  let iconClass = 'fas fa-check-circle';
+  let backgroundColor = 'rgba(16, 185, 129, 0.95)';
+  let borderColor = '#10b981';
   
-  toastMessage.textContent = message;
-  
-  // Remove previous classes
-  toast.classList.remove('error', 'show');
-  
-  // Update icon and style
   if (type === 'error') {
-    toast.classList.add('error');
-    icon.className = 'fas fa-times-circle';
+    iconClass = 'fas fa-times-circle';
+    backgroundColor = 'rgba(239, 68, 68, 0.95)';
+    borderColor = '#ef4444';
   } else if (type === 'warning') {
-    toast.style.borderColor = '#f59e0b';
-    icon.className = 'fas fa-exclamation-triangle';
-    icon.style.color = '#f59e0b';
-  } else {
-    icon.className = 'fas fa-check-circle';
-    icon.style.color = '#10b981';
+    iconClass = 'fas fa-exclamation-triangle';
+    backgroundColor = 'rgba(245, 158, 11, 0.95)';
+    borderColor = '#f59e0b';
+  } else if (type === 'info') {
+    iconClass = 'fas fa-info-circle';
+    backgroundColor = 'rgba(59, 130, 246, 0.95)';
+    borderColor = '#3b82f6';
   }
   
-  // Show toast
+  toast.innerHTML = `
+    <i class="${iconClass}"></i>
+    <span>${message}</span>
+  `;
+  
+  toast.style.background = backgroundColor;
+  toast.style.borderLeft = `4px solid ${borderColor}`;
+  
   toast.classList.add('show');
   
-  // Hide after 3 seconds
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);

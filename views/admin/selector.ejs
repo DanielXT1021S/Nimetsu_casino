@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Seleccionar Panel - Nimetsu Casino</title>
+  <style>body { visibility: hidden; }</style>
+  <script>
+    const token = localStorage.getItem('nimetsuCasinoToken') || localStorage.getItem('token');
+    if (!token) { window.location.replace('/login'); }
+    else { document.write('<style>body { visibility: visible; }</style>'); }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oxanium:wght@700;800&display=swap" rel="stylesheet">

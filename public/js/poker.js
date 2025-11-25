@@ -42,7 +42,6 @@ const menuOverlay = document.getElementById('menuOverlay');
 const payoutSidebar = document.getElementById('payoutSidebar');
 const togglePayoutBtn = document.getElementById('togglePayoutBtn');
 
-// Modales
 const rulesModal = document.getElementById('rulesModal');
 const rulesModalOverlay = document.getElementById('rulesModalOverlay');
 const rulesModalClose = document.getElementById('rulesModalClose');
@@ -54,22 +53,23 @@ const prizesModalOverlay = document.getElementById('prizesModalOverlay');
 const prizesModalClose = document.getElementById('prizesModalClose');
 const prizesModalBody = document.getElementById('prizesModalBody');
 
-// Botones del menú
 const rulesBtn = document.getElementById('rulesBtn');
 const prizesBtn = document.getElementById('prizesBtn');
 
-// Variables para control de doble clic en fichas
 let lastChipClickTime = 0;
 let lastChipValue = null;
 const DOUBLE_CLICK_DELAY = 400; // ms
 
-// Estado del panel de fichas
 let chipsExpanded = false;
 
-// Inicializar juego
 async function initGame() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
     
     const response = await fetch('/poker/init', {
       method: 'GET',
@@ -91,7 +91,6 @@ async function initGame() {
     gameState.maxBet = data.maxBet;
     gameState.currentAnte = 100;
 
-    // Inicializar estado colapsado en móvil
     if (chipsSection) {
         chipsSection.classList.add('collapsed');
     }
@@ -116,7 +115,6 @@ async function initGame() {
   }
 }
 
-// Fase 1: Apuesta Ante y recibir cartas
 async function handleAnte() {
   if (gameState.isPlaying) return;
 
@@ -127,7 +125,6 @@ async function handleAnte() {
     return;
   }
 
-  // Verificar que tenga saldo para Ante + Play (el doble)
   if (ante * 2 > gameState.balance) {
     showToast('Saldo insuficiente. Necesitas el doble del Ante para jugar.');
     return;
@@ -142,6 +139,11 @@ async function handleAnte() {
 
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
     
     const response = await fetch('/poker/ante', {
       method: 'POST',
@@ -161,17 +163,12 @@ async function handleAnte() {
       return;
     }
 
-    // Guardar mano del jugador
     gameState.playerHand = data.playerHand;
     gameState.balance = data.newBalance;
     updateBalance();
 
-    console.log('Mano del jugador guardada:', gameState.playerHand);
-
-    // Mostrar cartas del jugador con animación
     displayPlayerCards(data.playerHand);
 
-    // Habilitar botones Play/Fold después de mostrar cartas
     setTimeout(() => {
       playBtn.disabled = false;
       foldBtn.disabled = false;
@@ -188,7 +185,6 @@ async function handleAnte() {
   }
 }
 
-// Fase 2: Play (doblar apuesta)
 async function handlePlay() {
   if (gameState.isPlaying || gameState.gamePhase !== 'WAITING_DECISION') return;
 
@@ -200,11 +196,11 @@ async function handlePlay() {
 
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
-    
-    console.log('Enviando al servidor:', {
-      ante: gameState.currentAnte,
-      playerHand: gameState.playerHand
-    });
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
     
     const response = await fetch('/poker/play', {
       method: 'POST',
@@ -220,7 +216,6 @@ async function handlePlay() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.log('Error del servidor:', errorData);
       showToast(errorData.message || 'Error al jugar');
       resetGame();
       return;
@@ -228,7 +223,6 @@ async function handlePlay() {
 
     const data = await response.json();
 
-    console.log('Respuesta del servidor:', data);
 
     if (!data.success) {
       showToast(data.message || 'Error al jugar');
@@ -236,19 +230,15 @@ async function handlePlay() {
       return;
     }
 
-    // Mostrar cartas del dealer con animación
     displayDealerCards(data.dealerHand);
 
-    // Esperar animación y mostrar resultado
     setTimeout(() => {
       gameState.balance = data.newBalance;
       updateBalance();
 
-      // Mostrar resultados
       handResult.textContent = data.playerResult.displayName;
       dealerResult.textContent = data.dealerResult.displayName;
 
-      // Mostrar mensaje del juego
       let message = data.result;
       if (data.anteBonus > 0) {
         message += ` (Bonus: +$${data.anteBonus.toLocaleString()})`;
@@ -262,7 +252,6 @@ async function handlePlay() {
         showToast(message);
       }
 
-      // Resetear después de mostrar resultado
       setTimeout(() => {
         resetGame();
       }, 3000);
@@ -275,7 +264,6 @@ async function handlePlay() {
   }
 }
 
-// Fase 2 alternativa: Fold (retirarse)
 async function handleFold() {
   if (gameState.isPlaying || gameState.gamePhase !== 'WAITING_DECISION') return;
 
@@ -285,6 +273,11 @@ async function handleFold() {
 
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
     
     const response = await fetch('/poker/fold', {
       method: 'POST',
@@ -296,7 +289,6 @@ async function handleFold() {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.log('Error del servidor:', errorData);
       showToast(errorData.message || 'Error al retirarse');
       resetGame();
       return;
@@ -315,13 +307,11 @@ async function handleFold() {
     resetGame();
 
   } catch (error) {
-    console.error('Error en Fold:', error);
     showToast('Error de conexión');
     resetGame();
   }
 }
 
-// Mostrar cartas del jugador
 function displayPlayerCards(hand) {
   for (let i = 0; i < 3; i++) {
     const cardElement = document.getElementById(`card${i}`);
@@ -357,7 +347,6 @@ function displayPlayerCards(hand) {
   });
 }
 
-// Mostrar cartas del dealer
 function displayDealerCards(hand) {
   for (let i = 0; i < 3; i++) {
     const cardElement = document.getElementById(`dealerCard${i}`);
@@ -393,7 +382,6 @@ function displayDealerCards(hand) {
   });
 }
 
-// Resetear juego
 function resetGame() {
   gameState.isPlaying = false;
   gameState.playerHand = null;
@@ -407,7 +395,6 @@ function resetGame() {
   handResult.className = 'hand-result';
   dealerResult.textContent = '';
   
-  // Resetear cartas a reverso
   for (let i = 0; i < 3; i++) {
     const playerCard = document.getElementById(`card${i}`);
     const dealerCard = document.getElementById(`dealerCard${i}`);
@@ -419,14 +406,12 @@ function resetGame() {
   }
 }
 
-// Limpiar apuesta
 function clearBet() {
   betAmount.value = gameState.minBet;
   gameState.currentAnte = gameState.minBet;
   updateCurrentBetDisplay();
 }
 
-// Actualizar balance
 function updateBalance() {
   if (balanceAmount) {
     balanceAmount.textContent = `$${gameState.balance.toLocaleString()}`;
@@ -437,7 +422,6 @@ function updateBalance() {
   }
 }
 
-// Actualizar display de apuesta actual
 function updateCurrentBetDisplay() {
   if (betAmountInput) {
     betAmountInput.value = gameState.currentAnte;
@@ -447,14 +431,12 @@ function updateCurrentBetDisplay() {
   }
 }
 
-// Limpiar apuesta
 function clearBet() {
   gameState.currentAnte = 10;
   updateCurrentBetDisplay();
   showToast('Apuesta restablecida a $10', 'info');
 }
 
-// Establecer apuesta
 function setBet(amount, accumulate = false) {
   let newBet;
   
@@ -479,13 +461,11 @@ function setBet(amount, accumulate = false) {
   
   updateCurrentBetDisplay();
   
-  // Actualizar estado visual de las fichas
   document.querySelectorAll('.casino-chip').forEach(chip => {
     chip.classList.remove('selected');
   });
 }
 
-// Toggle panel de fichas
 function toggleChipsPanel() {
   chipsExpanded = !chipsExpanded;
   
@@ -518,7 +498,6 @@ function toggleChipsPanel() {
   }
 }
 
-// Mostrar overlay de victoria
 function showWinOverlay(amount, message) {
   winAmount.textContent = `+$${amount.toLocaleString()}`;
   winHand.textContent = message;
@@ -529,7 +508,6 @@ function showWinOverlay(amount, message) {
   }, 3000);
 }
 
-// Mostrar toast
 function showToast(message, type = 'info') {
   const messageElement = toast.querySelector('.toast-message');
   messageElement.textContent = message;
@@ -540,7 +518,6 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
-// Mostrar overlay de pérdida
 function showLoseOverlay(amount, message) {
   if (loseAmount) {
     loseAmount.textContent = `-$${amount.toLocaleString()}`;
@@ -556,7 +533,6 @@ function showLoseOverlay(amount, message) {
   }
 }
 
-// Menú lateral
 function openMenu() {
   if (sideMenu) {
     sideMenu.classList.add('open');
@@ -575,7 +551,6 @@ function closeMenu() {
   }
 }
 
-// Abrir modal de reglas
 function openRulesModal() {
   if (!rulesModal) return;
   
@@ -668,7 +643,6 @@ function closeRulesModal() {
   }
 }
 
-// Abrir modal de premios
 function openPrizesModal() {
   if (!prizesModal) return;
   
@@ -767,14 +741,12 @@ function closePrizesModal() {
   }
 }
 
-// Configurar event listeners
 function setupEventListeners() {
-  // Botones de acción del juego
+ 
   if (anteBtn) anteBtn.addEventListener('click', handleAnte);
   if (playBtn) playBtn.addEventListener('click', handlePlay);
   if (foldBtn) foldBtn.addEventListener('click', handleFold);
-  
-  // Controles de apuesta
+ 
   if (clearBtn) clearBtn.addEventListener('click', clearBet);
   if (increaseBetBtn) {
     increaseBetBtn.addEventListener('click', () => {
@@ -787,26 +759,23 @@ function setupEventListeners() {
     });
   }
   
-  // Toggle panel de fichas
   if (toggleChipsBtn) {
     toggleChipsBtn.addEventListener('click', toggleChipsPanel);
   }
   
-  // Fichas de casino con sistema de doble clic
   document.querySelectorAll('.casino-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
       const value = parseInt(chip.dataset.value);
       const currentTime = Date.now();
-      
-      // Detectar doble clic
+     
       if (currentTime - lastChipClickTime < DOUBLE_CLICK_DELAY && lastChipValue === value) {
-        // Doble clic: establecer valor exacto
+      
         setBet(value, false);
         chip.classList.add('selected');
         lastChipClickTime = 0;
         lastChipValue = null;
       } else {
-        // Clic simple: acumular
+       
         setBet(value, true);
         lastChipClickTime = currentTime;
         lastChipValue = value;
@@ -814,10 +783,8 @@ function setupEventListeners() {
     });
   });
   
-  // Input manual de apuesta
   if (betAmountInput) {
     betAmountInput.addEventListener('input', () => {
-      // No validar durante la escritura, permitir borrar todo
     });
     
     betAmountInput.addEventListener('blur', () => {
@@ -834,12 +801,18 @@ function setupEventListeners() {
     });
   }
   
-  // Menú
   if (menuBtn) menuBtn.addEventListener('click', openMenu);
   if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
   if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
   
-  // Modales
+  const logoutLinks = document.querySelectorAll('a[href="/logout"]');
+  logoutLinks.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleLogout();
+    });
+  });
+  
   if (rulesBtn) rulesBtn.addEventListener('click', openRulesModal);
   if (rulesModalClose) rulesModalClose.addEventListener('click', closeRulesModal);
   if (rulesModalOverlay) rulesModalOverlay.addEventListener('click', closeRulesModal);
@@ -847,8 +820,7 @@ function setupEventListeners() {
   if (prizesBtn) prizesBtn.addEventListener('click', openPrizesModal);
   if (prizesModalClose) prizesModalClose.addEventListener('click', closePrizesModal);
   if (prizesModalOverlay) prizesModalOverlay.addEventListener('click', closePrizesModal);
-  
-  // Toggle payout sidebar
+
   if (togglePayoutBtn) {
     togglePayoutBtn.addEventListener('click', () => {
       if (payoutSidebar) {
@@ -858,5 +830,21 @@ function setupEventListeners() {
   }
 }
 
-// Inicializar al cargar
+async function handleLogout() {
+  try {
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (err) {}
+  
+  localStorage.removeItem('nimetsuCasinoToken');
+  localStorage.removeItem('nimetsuCasinoUser');
+  localStorage.removeItem('nimetsuCasinoBalance');
+  
+  document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  
+  window.location.href = '/login';
+}
+
 window.addEventListener('DOMContentLoaded', initGame);

@@ -4,7 +4,6 @@ const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
 
-// Tipos de apuesta para ruleta
 const BET_TYPES = {
   STRAIGHT: 'straight',
   RED: 'red',
@@ -95,13 +94,10 @@ exports.spin = async (req, res) => {
 
     const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
 
-    // Obtener conexión ANTES de validar saldo
     connection = await pool.getConnection();
     
-    // Iniciar transacción INMEDIATAMENTE
     await connection.beginTransaction();
 
-    // Obtener saldo DENTRO de la transacción para lock
     const [balanceRows] = await connection.query(
       'SELECT balance FROM balances WHERE userId = ? FOR UPDATE',
       [userId]
@@ -118,7 +114,6 @@ exports.spin = async (req, res) => {
 
     const currentBalance = balanceRows[0].balance;
 
-    // Validar saldo suficiente
     if (currentBalance < totalBet) {
       await connection.rollback();
       connection.release();
@@ -128,14 +123,11 @@ exports.spin = async (req, res) => {
       });
     }
 
-    // Descontar apuesta DENTRO de la transacción
     await connection.query(
       'UPDATE balances SET balance = balance - ? WHERE userId = ?',
       [totalBet, userId]
     );
 
-    // Generar número aleatorio SIN SESGO usando crypto
-    // crypto.randomInt es criptográficamente seguro y uniformemente distribuido
     const wheelNumber = crypto.randomInt(0, 37);
     
     let winnings = 0;
@@ -146,7 +138,6 @@ exports.spin = async (req, res) => {
       
       if (isWinning) {
         const payout = calculatePayout(bet);
-        // El payout incluye: apuesta original + ganancias
         const totalWin = bet.amount + (bet.amount * payout);
         winnings += totalWin;
         winningBets.push({
@@ -158,7 +149,6 @@ exports.spin = async (req, res) => {
       }
     });
 
-    // Agregar ganancias DENTRO de la transacción
     if (winnings > 0) {
       await connection.query(
         'UPDATE balances SET balance = balance + ? WHERE userId = ?',
@@ -166,7 +156,6 @@ exports.spin = async (req, res) => {
       );
     }
 
-    // Obtener nuevo saldo DENTRO de la transacción
     const [newBalanceRows] = await connection.query(
       'SELECT balance FROM balances WHERE userId = ?',
       [userId]
@@ -190,7 +179,6 @@ exports.spin = async (req, res) => {
       gameData
     );
 
-    // Confirmar transacción solo si TODO salió bien
     await connection.commit();
     connection.release();
 
@@ -206,17 +194,14 @@ exports.spin = async (req, res) => {
       message: winnings > 0 ? `¡GANASTE! +$${winnings}` : 'Perdiste esta ronda'
     });
   } catch (error) {
-    // Revertir transacción en caso de error
+
     if (connection) {
       try {
         await connection.rollback();
         connection.release();
       } catch (rollbackError) {
-        console.error('[ROULETTE ROLLBACK ERROR]', rollbackError);
       }
     }
-    
-    console.error('[ROULETTE ERROR]', error);
     
     res.status(500).json({
       success: false,

@@ -8,26 +8,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Oxanium:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components/navbar.css">
+  <link rel="stylesheet" href="/css/components/account-sidebar.css">
+  <link rel="stylesheet" href="/css/components/toast.css">
+  <link rel="stylesheet" href="/css/components/modal.css">
+  <link rel="stylesheet" href="/css/components/footer.css">
   <link rel="stylesheet" href="/css/recharge.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="navbar-content">
-      <div class="navbar-logo">
-        <i class="fas fa-dice"></i> NIMETSU CASINO
-      </div>
-      <div class="navbar-actions">
-        <a href="/dashboard" class="btn-back">
-          <i class="fas fa-arrow-left"></i> Volver al Casino
-        </a>
-        <button id="accountBtn" class="btn-account">
-          <i class="fas fa-user-circle"></i>
-          <span id="userName">Usuario</span>
-        </button>
-      </div>
-    </div>
-  </nav>
+  <%- include('partials/header') %>
 
   <!-- Main Content -->
   <main class="main-container">
@@ -71,20 +61,6 @@
           </div>
         </button>
       </nav>
-      
-      <!-- Balance Card in Sidebar -->
-      <div class="sidebar-balance">
-        <div class="sidebar-balance-icon">
-          <i class="fas fa-wallet"></i>
-        </div>
-        <div class="sidebar-balance-info">
-          <span class="sidebar-balance-label">Saldo Disponible</span>
-          <span class="sidebar-balance-amount" id="balanceAmount">$0</span>
-        </div>
-        <button id="refreshBalanceBtn" class="sidebar-btn-refresh">
-          <i class="fas fa-sync-alt"></i>
-        </button>
-      </div>
     </aside>
 
     <!-- Main Content Area -->
@@ -99,8 +75,6 @@
       <div class="content-section active" id="deposit-section">
         <!-- Custom Amount -->
         <div class="custom-amount-section">
-          <h2><i class="fas fa-edit"></i> Monto Personalizado</h2>
-          <p class="section-description">Ingresa el monto que deseas depositar (mínimo $500 CLP)</p>
           
           <div class="amount-input-wrapper">
             <span class="currency-symbol">$</span>
@@ -108,32 +82,26 @@
               type="number" 
               id="customAmount" 
               class="amount-input" 
-              placeholder="Ingresa el monto"
+              placeholder="Ingresa el monto (mín. $500)"
               min="500"
               step="100"
             >
             <span class="currency-label">CLP</span>
           </div>
           
-          <div class="amount-info">
-            <div class="info-item">
-              <i class="fas fa-info-circle"></i>
-              <span>Mínimo: $500 CLP</span>
-            </div>
-            <div class="info-item">
-              <i class="fas fa-coins"></i>
-              <span>Recibirás: <strong id="fichasReceived">0</strong> fichas</span>
-            </div>
+          <div class="conversion-display">
+            <i class="fas fa-coins"></i>
+            <span>Recibirás: <strong id="fichasReceived">0</strong> fichas</span>
           </div>
 
           <button id="btnDepositCustom" class="btn-primary btn-large">
-            <i class="fas fa-credit-card"></i> Depositar con MercadoPago
+            <i class="fas fa-credit-card"></i> Continuar con MercadoPago
           </button>
         </div>
 
         <!-- Quick Amounts -->
         <div class="quick-amounts-section">
-          <h3><i class="fas fa-bolt"></i> Montos Rápidos</h3>
+          <h3><i class="fas fa-zap"></i> Acceso Rápido</h3>
           <div class="quick-amounts-grid">
             <button class="quick-amount-btn" data-amount="1000">
               <span class="amount">$1,000</span>
@@ -176,16 +144,7 @@
       <!-- Withdraw Bank Section -->
       <div class="content-section" id="withdraw-bank-section">
         <div class="withdraw-container">
-          <div class="withdraw-header">
-            <div class="withdraw-icon">
-              <i class="fas fa-university"></i>
-            </div>
-            <div>
-              <h2>Retiro Bancario</h2>
-              <p class="section-description">Retira tu saldo a tu cuenta bancaria</p>
-            </div>
-          </div>
-
+          
           <!-- Bank Account Form -->
           <div class="bank-form">
             <div class="form-group">
@@ -265,16 +224,7 @@
       <!-- Withdraw Crypto Section -->
       <div class="content-section" id="withdraw-crypto-section">
         <div class="withdraw-container">
-          <div class="withdraw-header">
-            <div class="withdraw-icon crypto">
-              <i class="fab fa-bitcoin"></i>
-            </div>
-            <div>
-              <h2>Retiro en Criptomonedas</h2>
-              <p class="section-description">Retira tu saldo en Bitcoin o USDT</p>
-            </div>
-          </div>
-
+        
           <!-- Crypto Form -->
           <div class="crypto-form">
             <div class="crypto-select">
@@ -344,7 +294,7 @@
       <div class="content-section" id="history-section">
         <div class="history-container">
           <div class="history-header">
-            <h2><i class="fas fa-history"></i> Historial de Transacciones</h2>
+    
             <div class="history-filters">
               <button class="filter-btn active" data-filter="all">Todas</button>
               <button class="filter-btn" data-filter="deposit">Depósitos</button>
@@ -363,11 +313,8 @@
     </div>
   </main>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage">Mensaje</span>
-  </div>
+  <%- include('partials/footer') %>
+  <%- include('partials/account-sidebar') %>
 
   <script src="/js/recharge.js"></script>
 </body>

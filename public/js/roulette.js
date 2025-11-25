@@ -1,6 +1,4 @@
-// =========================
-// Estado de la ruleta
-// =========================
+
 let rouletteState = {
   userBalance: 0,
   currentBet: 100,
@@ -12,19 +10,13 @@ let rouletteState = {
   maxBet: 10000
 };
 
-// Variables para control de doble clic en fichas
 let lastChipClickTime = 0;
 let lastChipValue = null;
-const DOUBLE_CLICK_DELAY = 400; // ms
+const DOUBLE_CLICK_DELAY = 400;
 
-// Estado del panel de fichas
 let chipsExpanded = false;
 
-// =========================
-// Init
-// =========================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Roulette game loading...');
   initGame();
 });
 
@@ -37,17 +29,18 @@ async function initGame() {
     setupChipsListeners();
     addBetButtonListeners();
   } catch (error) {
-    console.error('Error initializing game:', error);
     showToast('Error al cargar el juego', 'error');
   }
 }
 
-// =========================
-// Carga de saldo
-// =========================
 async function loadUserBalance() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
 
     const response = await fetch('/user/me', {
       headers: {
@@ -68,16 +61,12 @@ async function loadUserBalance() {
     }
     updateBalanceDisplay();
   } catch (error) {
-    console.error('Error loading balance:', error);
     showToast('Error al cargar saldo: ' + error.message, 'error');
     rouletteState.userBalance = 0;
     updateBalanceDisplay();
   }
 }
 
-// =========================
-// Menú lateral / fullscreen
-// =========================
 function setupMenuListeners() {
   const menuBtn = document.getElementById('menuBtn');
   const closeMenuBtn = document.getElementById('closeMenuBtn');
@@ -87,11 +76,9 @@ function setupMenuListeners() {
   const togglePayoutBtn = document.getElementById('togglePayoutBtn');
   const payoutSidebar = document.getElementById('payoutSidebar');
   
-  // Botones del menú para modales
   const rulesBtn = document.getElementById('rulesBtn');
   const prizesBtn = document.getElementById('prizesBtn');
   
-  // Modales
   const rulesModal = document.getElementById('rulesModal');
   const rulesModalOverlay = document.getElementById('rulesModalOverlay');
   const rulesModalClose = document.getElementById('rulesModalClose');
@@ -114,12 +101,19 @@ function setupMenuListeners() {
   if (menuOverlay) {
     menuOverlay.addEventListener('click', closeMenu);
   }
-
+  
+  const logoutLinks = document.querySelectorAll('a[href="/logout"]');
+  logoutLinks.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleLogout();
+    });
+  });
+  
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', toggleFullscreen);
   }
   
-  // Event listeners para modales
   if (rulesBtn) {
     rulesBtn.addEventListener('click', openRulesModal);
   }
@@ -160,6 +154,23 @@ function closeMenu() {
   if (menuOverlay) menuOverlay.classList.remove('active');
 }
 
+async function handleLogout() {
+  try {
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (err) {}
+  
+  localStorage.removeItem('nimetsuCasinoToken');
+  localStorage.removeItem('nimetsuCasinoUser');
+  localStorage.removeItem('nimetsuCasinoBalance');
+  
+  document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  
+  window.location.href = '/login';
+}
+
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(err => {
@@ -172,9 +183,6 @@ function toggleFullscreen() {
   }
 }
 
-// =========================
-// Modales de Reglas y Premios
-// =========================
 function openRulesModal() {
   const rulesModal = document.getElementById('rulesModal');
   const rulesModalBody = document.getElementById('rulesModalBody');
@@ -458,9 +466,6 @@ function closePrizesModal() {
   }
 }
 
-// =========================
-// Controles del juego
-// =========================
 function setupGameListeners() {
   const spinBtn = document.getElementById('spinBtn');
   const clearBetsBtn = document.getElementById('clearBetsBtn');
@@ -471,9 +476,6 @@ function setupGameListeners() {
   if (resetBtn) resetBtn.addEventListener('click', resetGame);
 }
 
-// =========================
-// Controles de fichas (igual que template)
-// =========================
 function setupChipsListeners() {
   const toggleChipsBtn = document.getElementById('toggleChipsBtn');
   const chipsSection = document.getElementById('chipsSection');
@@ -485,7 +487,6 @@ function setupChipsListeners() {
   const decreaseBetBtn = document.getElementById('decreaseBetBtn');
   const clearBtn = document.getElementById('clearBtn');
 
-  // Inicializar estado colapsado
   if (chipsSection) {
     chipsSection.classList.add('collapsed');
   }
@@ -499,25 +500,23 @@ function setupChipsListeners() {
     compactBetDisplay.classList.add('show');
   }
 
-  // Toggle chips
+  
   if (toggleChipsBtn) {
     toggleChipsBtn.addEventListener('click', toggleChips);
   }
 
-  // Fichas con lógica de doble clic (igual que template)
   casinoChips.forEach(chip => {
     chip.addEventListener('click', () => {
       const value = parseInt(chip.dataset.value);
       const currentTime = Date.now();
-      
-      // Verificar si es doble clic en la misma ficha
+    
       if (lastChipValue === value && (currentTime - lastChipClickTime) < DOUBLE_CLICK_DELAY) {
-        // Doble clic: establecer exactamente ese valor
+    
         setBet(value, false);
         lastChipClickTime = 0;
         lastChipValue = null;
       } else {
-        // Primer clic: acumular
+      
         setBet(value, true);
         lastChipClickTime = currentTime;
         lastChipValue = value;
@@ -525,7 +524,6 @@ function setupChipsListeners() {
     });
   });
 
-  // Aumentar/Disminuir apuesta
   if (increaseBetBtn) {
     increaseBetBtn.addEventListener('click', () => {
       setBet(rouletteState.currentBet + 10);
@@ -538,7 +536,6 @@ function setupChipsListeners() {
     });
   }
 
-  // Clear (reset a 10)
   if (clearBtn) {
     clearBtn.addEventListener('click', () => {
       rouletteState.currentBet = 10;
@@ -547,7 +544,6 @@ function setupChipsListeners() {
     });
   }
 
-  // Input manual de apuesta
   if (betAmountInput) {
     betAmountInput.addEventListener('input', (e) => {
       const value = e.target.value;
@@ -601,7 +597,6 @@ function setBet(amount, accumulate = false) {
   
   updateCurrentBetDisplay();
   
-  // Actualizar estado visual de las fichas
   document.querySelectorAll('.casino-chip').forEach(chip => {
     chip.classList.remove('selected');
   });
@@ -642,8 +637,6 @@ function toggleChips() {
     if (compactHeader) compactHeader.classList.remove('expanded');
   }
 }
-
-// listeners de botones de apuesta
 function addBetButtonListeners() {
   const numberBtns = document.querySelectorAll('[data-bet-type="straight"]');
   const redBtn = document.querySelector('[data-bet-type="red"]');
@@ -655,7 +648,6 @@ function addBetButtonListeners() {
   const dozenBtns = document.querySelectorAll('[data-bet-type^="dozen"]');
   const columnBtns = document.querySelectorAll('[data-bet-type^="column"]');
 
-  // números (incluye el 0)
   numberBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const betValue = parseInt(btn.dataset.betValue);
@@ -664,7 +656,6 @@ function addBetButtonListeners() {
     });
   });
 
-  // simples
   if (redBtn) redBtn.addEventListener('click', () => placeBet('red', null, 'Rojo'));
   if (blackBtn) blackBtn.addEventListener('click', () => placeBet('black', null, 'Negro'));
   if (oddBtn) oddBtn.addEventListener('click', () => placeBet('odd', null, 'Impar'));
@@ -672,7 +663,6 @@ function addBetButtonListeners() {
   if (lowBtn) lowBtn.addEventListener('click', () => placeBet('low', null, '1-18'));
   if (highBtn) highBtn.addEventListener('click', () => placeBet('high', null, '19-36'));
 
-  // docenas
   dozenBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const betType = btn.dataset.betType;
@@ -681,7 +671,6 @@ function addBetButtonListeners() {
     });
   });
 
-  // columnas
   columnBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const betType = btn.dataset.betType;
@@ -691,9 +680,6 @@ function addBetButtonListeners() {
   });
 }
 
-// =========================
-// Controles del juego
-// =========================
 function setupGameListeners() {
   const spinBtn = document.getElementById('spinBtn');
   const clearBetsBtn = document.getElementById('clearBetsBtn');
@@ -704,13 +690,9 @@ function setupGameListeners() {
   if (resetBtn) resetBtn.addEventListener('click', resetGame);
 }
 
-// =========================
-// Generación de ruleta SVG
-// =========================
 const svgNS = "http://www.w3.org/2000/svg";
 let pocketData = [];
 
-// Orden real de la ruleta europea
 const wheelNumbers = [
   0, 32, 15, 19, 4, 21, 2, 25, 17, 34,
   6, 27, 13, 36, 11, 30, 8, 23, 10, 5,
@@ -745,12 +727,11 @@ function generateWheelNumbers() {
   const centerX = 200;
   const centerY = 200;
 
-  // Zonas de la rueda
-  const rOuter = 170;  // borde exterior de colores
-  const rInner = 125;  // borde interior de colores
-  const rLabel = 147;  // donde van los números
+  const rOuter = 170; 
+  const rInner = 125;  
+  const rLabel = 147;  
 
-  pocketData = []; // Reset pocket data
+  pocketData = []; 
 
   for (let i = 0; i < totalPockets; i++) {
     const num = wheelNumbers[i];
@@ -804,9 +785,6 @@ function generateWheelNumbers() {
   }
 }
 
-// =========================
-// Gestión de apuestas
-// =========================
 function placeBet(betType, betValue, betLabel) {
   const amount = rouletteState.currentBet;
 
@@ -831,7 +809,6 @@ function placeBet(betType, betValue, betLabel) {
 
   rouletteState.bets.push(bet);
   
-  // Mostrar ficha visual en el tablero
   showChipOnBoard(betType, betValue, amount);
   
   updateBetsSummary();
@@ -880,7 +857,6 @@ function updateBetsSummary() {
     return;
   }
 
-  // Agrupar apuestas por tipo/valor
   const groupedBets = {};
   rouletteState.bets.forEach(bet => {
     const key = `${bet.type}-${bet.value}`;
@@ -897,7 +873,6 @@ function updateBetsSummary() {
     groupedBets[key].bets.push(bet);
   });
 
-  // Mostrar resumen agrupado
   Object.values(groupedBets).forEach(group => {
     const div = document.createElement('div');
     div.className = 'bet-item';
@@ -924,7 +899,6 @@ function removeBet(betId) {
   updateBetsSummary();
   updateTotalBet();
   
-  // Actualizar fichas en el tablero
   clearChipsFromBoard();
   rouletteState.bets.forEach(bet => {
     showChipOnBoard(bet.type, bet.value, bet.amount);
@@ -947,11 +921,8 @@ function updateTotalBet() {
   }
 }
 
-// =========================
-// Fichas visuales en el tablero
-// =========================
 function showChipOnBoard(betType, betValue, amount) {
-  // Encontrar la celda correspondiente
+ 
   let cell = null;
   
   if (betType === 'straight') {
@@ -968,7 +939,6 @@ function showChipOnBoard(betType, betValue, amount) {
     return;
   }
   
-  // Buscar si ya existe un stack de fichas en esta celda
   let chipStack = cell.querySelector('.bet-chip-stack');
   
   if (!chipStack) {
@@ -977,7 +947,6 @@ function showChipOnBoard(betType, betValue, amount) {
     cell.appendChild(chipStack);
   }
   
-  // Obtener total actual de apuestas en esta celda
   const cellBets = rouletteState.bets.filter(bet => 
     (bet.type === betType) && 
     (betValue === undefined || bet.value === betValue)
@@ -985,20 +954,17 @@ function showChipOnBoard(betType, betValue, amount) {
   
   const totalAmount = cellBets.reduce((sum, bet) => sum + bet.amount, 0);
   
-  // Limpiar y recrear fichas
   chipStack.innerHTML = '';
   
-  // Determinar el valor de ficha más cercano para el color
+  
   const chipColorValue = getChipColorValue(amount);
   
-  // Mostrar ficha con el monto de la última apuesta
   const chip = document.createElement('div');
   chip.className = 'bet-chip-visual';
   chip.setAttribute('data-chip-value', chipColorValue);
   chip.textContent = formatChipAmount(amount);
   chipStack.appendChild(chip);
-  
-  // Si hay múltiples apuestas, mostrar total
+
   if (cellBets.length > 1) {
     const totalBadge = document.createElement('div');
     totalBadge.className = 'bet-chip-total';
@@ -1008,7 +974,6 @@ function showChipOnBoard(betType, betValue, amount) {
 }
 
 function getChipColorValue(amount) {
-  // Retorna el valor de ficha más cercano para determinar el color
   if (amount >= 1000) return 1000;
   if (amount >= 500) return 500;
   if (amount >= 100) return 100;
@@ -1018,7 +983,7 @@ function getChipColorValue(amount) {
 }
 
 function formatChipAmount(amount) {
-  // Formatea el monto para mostrar en la ficha
+  
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(1)}M`;
   }
@@ -1032,9 +997,6 @@ function clearChipsFromBoard() {
   document.querySelectorAll('.bet-chip-stack').forEach(stack => stack.remove());
 }
 
-// =========================
-// Lógica de giro (API + Animación SVG)
-// =========================
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -1061,6 +1023,12 @@ async function spinWheel() {
 
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
+    if (!token) {
+      showToast('Error: No autorizado', 'error');
+      setTimeout(() => window.location.href = '/login', 2000);
+      return;
+    }
+    
     const totalBet = rouletteState.bets.reduce((sum, bet) => sum + bet.amount, 0);
 
     if (totalBet > rouletteState.userBalance) {
@@ -1072,10 +1040,8 @@ async function spinWheel() {
     rouletteState.isSpinning = true;
     if (spinBtn) spinBtn.disabled = true;
 
-    // Limpiar highlights previos
     clearHighlights();
 
-    // Llamada API
     const response = await fetch('/api/roulette/spin', {
       method: 'POST',
       headers: {
@@ -1106,29 +1072,23 @@ async function spinWheel() {
       return;
     }
 
-    // Iniciar animación SVG con el número ganador
     await animateSVGSpin(data.wheelNumber);
 
-    // Resaltar el número ganador
     highlightWinningNumber(data.wheelNumber);
 
-    // Mostrar resultado
     setTimeout(() => {
       displayResult(data);
     }, 500);
 
-    // Actualizar saldo
     rouletteState.userBalance = data.newBalance;
     updateBalanceDisplay();
 
-    // Actualizar últimos resultados
     rouletteState.lastResults.unshift(data.wheelNumber);
     if (rouletteState.lastResults.length > 10) {
       rouletteState.lastResults.pop();
     }
     updateLastResults();
 
-    // Limpiar apuestas y fichas del tablero después de 3 segundos
     setTimeout(() => {
       rouletteState.bets = [];
       updateBetsSummary();
@@ -1143,7 +1103,6 @@ async function spinWheel() {
   } catch (error) {
     console.error('Error spinning wheel:', error);
     
-    // Mensajes de error específicos
     let errorMessage = 'Error desconocido';
     let errorType = 'error';
     
@@ -1175,12 +1134,10 @@ async function spinWheel() {
     
     showToast(errorMessage, errorType);
     
-    // SIEMPRE recargar balance del servidor después de cualquier error
-    // para asegurar que el usuario vea su saldo real
     setTimeout(async () => {
       try {
         await loadUserBalance();
-        showToast('✓ Saldo actualizado correctamente', 'success');
+        showToast('Saldo actualizado correctamente', 'success');
       } catch (balanceError) {
         console.error('Error loading balance:', balanceError);
         showToast('No se pudo actualizar el saldo. Recarga la página.', 'error');
@@ -1193,18 +1150,14 @@ async function spinWheel() {
   }
 }
 
-// Animación SVG de la ruleta
 async function animateSVGSpin(winningNumber) {
   const rouletteSvg = document.getElementById('rouletteSvg');
   const ball = document.getElementById('ball');
   const ballShadow = document.getElementById('ballShadow');
 
   if (!rouletteSvg || !ball || !ballShadow) {
-    console.error('SVG elements not found');
     return;
   }
-
-  // Encontrar el ángulo del número ganador
   const targetPocket = pocketData.find(p => p.num === winningNumber);
   if (!targetPocket) {
     console.error('Winning number pocket not found:', winningNumber);
@@ -1213,7 +1166,6 @@ async function animateSVGSpin(winningNumber) {
 
   const targetAngle = targetPocket.middleAngle;
 
-  // Configuración de la animación
   const centerX = 200;
   const centerY = 200;
   const rOuter = 170;
@@ -1222,9 +1174,9 @@ async function animateSVGSpin(winningNumber) {
   const rBallMin = rInner + 4;
   const rBallBandMid = (rBallMax + rBallMin) / 2;
 
-  const spins = 5 + Math.random() * 2; // 5-7 vueltas
+  const spins = 5 + Math.random() * 2;
   const startAngle = targetAngle + spins * 2 * Math.PI;
-  const duration = 4500; // 4.5 segundos
+  const duration = 4500; 
 
   return new Promise((resolve) => {
     let startTime = null;
@@ -1234,26 +1186,21 @@ async function animateSVGSpin(winningNumber) {
       const elapsed = timestamp - startTime;
       const tRaw = Math.min(elapsed / duration, 1);
 
-      // Progreso suave
       const angleProgress = easeOutCubic(tRaw);
       const angle = startAngle + (targetAngle - startAngle) * angleProgress;
 
-      // Caída hacia el centro de la banda
       const fallProgress = Math.pow(tRaw, 1.4);
       let rBase = rBallMax - (rBallMax - rBallBandMid) * fallProgress;
 
-      // Pequeñas irregularidades
       const jitter =
         2 * Math.sin(angle * 4) * (1 - tRaw) +
         1 * Math.sin(angle * 7 + 1.2) * (1 - tRaw);
 
       let rTrack = clamp(rBase + jitter, rBallMin, rBallMax);
 
-      // Posición de la bola
       let px = centerX + rTrack * Math.cos(angle);
       let py = centerY + rTrack * Math.sin(angle);
 
-      // Botecitos
       const bounce = 0.8 * Math.abs(Math.sin(10 * Math.PI * tRaw)) * (1 - tRaw);
       const radialBounce = 2 * bounce;
       rTrack = clamp(rTrack - radialBounce, rBallMin, rBallMax);
@@ -1263,7 +1210,6 @@ async function animateSVGSpin(winningNumber) {
 
       const ballRadius = 7 + 2 * bounce;
 
-      // Sombra
       const rShadow = rTrack - 6;
       const sx = centerX + rShadow * Math.cos(angle);
       const sy = centerY + rShadow * Math.sin(angle) + 3;
@@ -1275,7 +1221,6 @@ async function animateSVGSpin(winningNumber) {
       ballShadow.setAttribute("cx", sx);
       ballShadow.setAttribute("cy", sy);
 
-      // Zoom al final
       let zoom = 1;
       if (tRaw > 0.78) {
         const tz = (tRaw - 0.78) / 0.22;
@@ -1286,7 +1231,7 @@ async function animateSVGSpin(winningNumber) {
       if (tRaw < 1) {
         requestAnimationFrame(animate);
       } else {
-        // Posición final
+        
         rouletteSvg.style.transform = "scale(1)";
 
         const finalR = rBallBandMid;
@@ -1312,22 +1257,16 @@ async function animateSVGSpin(winningNumber) {
 
 
 
-// =========================
-// Resaltar número ganador
-// =========================
-
 function highlightWinningNumber(number) {
-  // Resaltar en la rueda SVG
+
   clearHighlights();
   const winningPocket = pocketData.find(p => p.num === number);
   if (winningPocket) {
     winningPocket.path.classList.add('win');
   }
 
-  // Resaltar en la mesa de apuestas con animación mejorada
   highlightBetCell(number);
-  
-  // Crear efecto de partículas doradas
+
   createWinParticles(number);
 }
 
@@ -1367,20 +1306,17 @@ function getNumberColor(number) {
 }
 
 function highlightBetCell(number) {
-  // Clear all highlights first
+ 
   document.querySelectorAll('.bet-cell.hit, .zero-shape.hit').forEach(el => el.classList.remove('hit'));
   
-  // Highlight straight number
   const numberCells = document.querySelectorAll(`[data-bet-value="${number}"]`);
   numberCells.forEach(cell => {
     cell.classList.add('hit');
   });
 
-  // Define winning bet types for this number
   const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
   const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
 
-  // Dozen bets
   if (number >= 1 && number <= 12) {
     document.querySelectorAll('[data-bet-type="dozen_1st"]').forEach(el => el.classList.add('hit'));
   } else if (number >= 13 && number <= 24) {
@@ -1389,7 +1325,6 @@ function highlightBetCell(number) {
     document.querySelectorAll('[data-bet-type="dozen_3rd"]').forEach(el => el.classList.add('hit'));
   }
 
-  // Column bets
   if (number % 3 === 1 && number !== 0) {
     document.querySelectorAll('[data-bet-type="column_1st"]').forEach(el => el.classList.add('hit'));
   } else if (number % 3 === 2 && number !== 0) {
@@ -1398,7 +1333,6 @@ function highlightBetCell(number) {
     document.querySelectorAll('[data-bet-type="column_3rd"]').forEach(el => el.classList.add('hit'));
   }
 
-  // Even-money bets
   if (number >= 1 && number <= 18) {
     document.querySelectorAll('[data-bet-type="low"]').forEach(el => el.classList.add('hit'));
   } else if (number >= 19 && number <= 36) {
@@ -1417,14 +1351,13 @@ function highlightBetCell(number) {
     document.querySelectorAll('[data-bet-type="black"]').forEach(el => el.classList.add('hit'));
   }
 
-  // Remove highlights after 3 seconds
   setTimeout(() => {
     document.querySelectorAll('.bet-cell.hit, .zero-shape.hit').forEach(el => el.classList.remove('hit'));
   }, 3000);
 }
 
 function createWinParticles(number) {
-  // Buscar la celda ganadora
+
   const cell = document.querySelector(`.bet-cell[data-bet-type="straight"][data-bet-value="${number}"]`) ||
                document.querySelector(`.zero-shape[data-bet-value="${number}"]`);
   
@@ -1433,8 +1366,7 @@ function createWinParticles(number) {
   const rect = cell.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
-  
-  // Crear 15 partículas
+
   for (let i = 0; i < 15; i++) {
     setTimeout(() => {
       const particle = document.createElement('div');
@@ -1462,7 +1394,7 @@ function createWinParticles(number) {
       let vy_current = vy;
       
       const animateParticle = () => {
-        vy_current += 5; // Gravedad
+        vy_current += 5;
         x += vx * 0.016;
         y += vy_current * 0.016;
         opacity -= 0.015;
@@ -1498,9 +1430,6 @@ function updateLastResults() {
   });
 }
 
-// =========================
-// Reset / saldo / toast
-// =========================
 function resetGame() {
   rouletteState.bets = [];
   rouletteState.lastResults = [];
@@ -1513,10 +1442,9 @@ function resetGame() {
   const resultDisplay = document.querySelector('.result-display');
   if (resultDisplay) resultDisplay.classList.remove('show');
 
-  // Clear highlights
+
   clearHighlights();
 
-  // Reset SVG wheel
   const rouletteSvg = document.getElementById('rouletteSvg');
   if (rouletteSvg) rouletteSvg.style.transform = 'scale(1)';
 

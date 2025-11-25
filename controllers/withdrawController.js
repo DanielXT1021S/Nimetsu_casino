@@ -166,11 +166,8 @@ exports.requestBankWithdrawal = async (req, res) => {
       [userId, amount, amount, bankName, accountType, accountNumber, accountRut]
     );
 
-    
 
     await balanceService.updateBalance(userId, -amount);
-
-    
 
     await pool.query(
       `INSERT INTO transaction_status_history 
@@ -179,7 +176,6 @@ exports.requestBankWithdrawal = async (req, res) => {
       [txResult.insertId]
     );
 
-    
 
     res.json({
       success: true,
@@ -297,7 +293,10 @@ exports.getTransactionHistory = async (req, res) => {
     query += ' ORDER BY createdAt DESC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), parseInt(offset));
 
+  
     const [transactions] = await pool.query(query, params);
+    
+
 
     res.json({
       success: true,
@@ -305,7 +304,6 @@ exports.getTransactionHistory = async (req, res) => {
       total: transactions.length
     });
   } catch (err) {
-    
     res.status(500).json({
       success: false,
       message: 'Error al obtener historial de transacciones'

@@ -89,13 +89,11 @@ exports.spinSlots = async (req, res) => {
       });
     }
 
-    // Sistema de pesos para símbolos
     const symbolWeights = {
       '🍎': 15, '🍊': 15, '🍋': 15, '🍇': 12,
       '💎': 8, '👑': 6, '🌟': 4, '7️⃣': 2
     };
 
-    // Función para seleccionar símbolo con pesos
     const getWeightedSymbol = () => {
       const totalWeight = Object.values(symbolWeights).reduce((a, b) => a + b, 0);
       let random = Math.random() * totalWeight;
@@ -107,7 +105,6 @@ exports.spinSlots = async (req, res) => {
       return symbols[0];
     };
 
-    // Generar grid 5x3 con símbolos ponderados
     const grid = [];
     for (let col = 0; col < 5; col++) {
       const column = [];
@@ -117,7 +114,6 @@ exports.spinSlots = async (req, res) => {
       grid.push(column);
     }
 
-    // Evaluar TODAS las líneas posibles
     const lines = [
       { name: 'top', cells: grid.map((col, i) => ({ col: i, row: 0, symbol: col[0] })) },
       { name: 'middle', cells: grid.map((col, i) => ({ col: i, row: 1, symbol: col[1] })) },
@@ -140,7 +136,6 @@ exports.spinSlots = async (req, res) => {
 
     let bestWin = { winAmount: 0, multiplier: 0, cells: [], line: '', count: 0, symbol: '' };
 
-    // Evaluar cada línea
     for (const line of lines) {
       const firstSymbol = line.cells[0].symbol;
       let consecutiveCount = 1;
@@ -159,8 +154,7 @@ exports.spinSlots = async (req, res) => {
         
         if (multiplier > 0) {
           const winAmount = betAmount * multiplier;
-          
-          // Guardar la mejor combinación
+         
           if (winAmount > bestWin.winAmount) {
             bestWin = {
               winAmount,

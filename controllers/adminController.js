@@ -221,7 +221,6 @@ async function createUser(req, res) {
       return res.status(400).json({ ok: false, message: 'La contraseña debe tener al menos 6 caracteres' });
     }
 
-    // Verificar permisos para asignar roles
     if (role === 'superadmin' && adminRole !== 'superadmin') {
       return res.status(403).json({ ok: false, message: 'Solo un superadmin puede crear otros superadmins' });
     }
@@ -230,13 +229,11 @@ async function createUser(req, res) {
       return res.status(403).json({ ok: false, message: 'No tienes permisos para crear administradores' });
     }
 
-    // Verificar email único
     const [existingEmail] = await pool.query('SELECT userId FROM users WHERE email = ?', [email]);
     if (existingEmail.length > 0) {
       return res.status(409).json({ ok: false, message: 'El email ya está registrado' });
     }
 
-    // Verificar RUT único si se proporciona
     if (rut) {
       const [existingRut] = await pool.query('SELECT userId FROM users WHERE rut = ?', [rut]);
       if (existingRut.length > 0) {
@@ -258,7 +255,6 @@ async function createUser(req, res) {
 
       const userId = result.insertId;
 
-      // Crear balance dentro de la misma transacción para evitar fallos externos
       const initialBalance = parseInt(balance, 10) || 1000;
       await connection.query(
         'INSERT INTO balances (userId, balance, locked) VALUES (?, ?, ?)',
@@ -290,13 +286,11 @@ async function updateUser(req, res) {
     const { nickname, email, rut, password, balance, locked, role } = req.body;
     const adminRole = req.user?.role || 'user';
 
-    // Obtener usuario actual
     const [[currentUser]] = await pool.query('SELECT role FROM users WHERE userId = ?', [userId]);
     if (!currentUser) {
       return res.status(404).json({ ok: false, message: 'Usuario no encontrado' });
     }
 
-    // Verificar permisos para modificar roles
     if (role && role !== currentUser.role) {
       if (currentUser.role === 'superadmin' && adminRole !== 'superadmin') {
         return res.status(403).json({ ok: false, message: 'No puedes modificar un superadministrador' });
@@ -511,7 +505,8 @@ async function updateTransactionStatus(req, res) {
 
     const validStatuses = ['pending', 'processing', 'completed', 'rejected', 'cancelled'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ ok: false, message: 'Estado inválido' });
+      console.error('[UPDATE_TX_STATUS] Estado inválido:', status);
+      return res.status(400).json({ ok: false, success: false, message: 'Estado inválido' });
     }
 
     const [[currentTx]] = await pool.query(
@@ -520,7 +515,7 @@ async function updateTransactionStatus(req, res) {
     );
 
     if (!currentTx) {
-      return res.status(404).json({ ok: false, message: 'Transacción no encontrada' });
+      return res.status(404).json({ ok: false, success: false, message: 'Transacción no encontrada' });
     }
 
     const connection = await pool.getConnection();
@@ -540,10 +535,10 @@ async function updateTransactionStatus(req, res) {
         [transactionId, currentTx.status, status, req.user?.userId || null, reason || `Estado cambiado a ${status} por admin`]
       );
 
+
       if (status === 'completed' && currentTx.type === 'deposit' && confirmedAmount) {
         const amountToAdd = parseFloat(confirmedAmount);
-        const fichasToAdd = Math.floor(amountToAdd / 100);
-
+        const fichasToAdd = Math.floor(amountToAdd);
         await balanceService.getOrCreateBalance(currentTx.userId);
         await balanceService.updateBalance(currentTx.userId, fichasToAdd);
 
@@ -551,19 +546,13 @@ async function updateTransactionStatus(req, res) {
           `UPDATE transactions SET fichas = ? WHERE transactionId = ?`,
           [fichasToAdd, transactionId]
         );
-      }
 
-      if (status === 'completed' && currentTx.type === 'withdraw') {
-        const fichasToDeduct = currentTx.fichas || 0;
-        
-        await balanceService.updateBalance(currentTx.userId, -fichasToDeduct);
-        await balanceService.updateLocked(currentTx.userId, -fichasToDeduct);
       }
 
       if (status === 'rejected' && currentTx.type === 'withdraw') {
-        const fichasToUnlock = currentTx.fichas || 0;
+        const fichasToReturn = currentTx.fichas || 0;
         
-        await balanceService.updateLocked(currentTx.userId, -fichasToUnlock);
+        await balanceService.updateBalance(currentTx.userId, fichasToReturn);
       }
 
       await connection.commit();

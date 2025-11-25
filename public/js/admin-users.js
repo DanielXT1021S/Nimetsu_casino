@@ -1,6 +1,4 @@
-// admin-users.js - Gestión completa de usuarios
-
-// Ver detalles de usuario
+// admin-users.js 
 async function viewUser(userId) {
   const response = await adminFetch(`/admin/api/user/${userId}`);
   
@@ -111,7 +109,6 @@ async function viewUser(userId) {
   }
 }
 
-// Crear nuevo usuario
 function showCreateUserModal() {
   const currentUserData = JSON.parse(localStorage.getItem('nimetsuCasinoUser'));
   const currentUserRole = currentUserData?.role || 'user';
@@ -188,7 +185,6 @@ function showCreateUserModal() {
   });
 }
 
-// Crear usuario
 async function createUser() {
   const nickname = document.getElementById('new-nickname').value.trim();
   const email = document.getElementById('new-email').value.trim();
@@ -206,7 +202,7 @@ async function createUser() {
     alert('La contraseña debe tener al menos 6 caracteres');
     return;
   }
-  // Disable create button to prevent doble envío
+  
   const createBtn = document.querySelector('.modal-footer .btn-primary');
   if (createBtn) createBtn.disabled = true;
 
@@ -217,7 +213,6 @@ async function createUser() {
     });
 
     if (!response) {
-      // adminFetch ya redirigió en caso de 401/403 o hubo error de red
       if (!navigator.onLine) {
         alert('Sin conexión: verifica tu conexión a internet');
       } else {
@@ -243,7 +238,6 @@ async function createUser() {
   }
 }
 
-// Editar usuario
 async function editUser(userId) {
   const response = await adminFetch(`/admin/api/user/${userId}`);
   
@@ -263,7 +257,6 @@ async function editUser(userId) {
   const currentUserData = JSON.parse(localStorage.getItem('nimetsuCasinoUser'));
   const currentUserRole = currentUserData?.role || 'user';
   
-  // Verificar permisos
   const canEditRole = (currentUserRole === 'superadmin') || 
                       (currentUserRole === 'admin' && user.role !== 'superadmin');
   
@@ -344,7 +337,6 @@ async function editUser(userId) {
   });
 }
 
-// Actualizar usuario
 async function updateUser(userId) {
   const nickname = document.getElementById('edit-nickname').value.trim();
   const email = document.getElementById('edit-email').value.trim();
@@ -398,7 +390,6 @@ async function updateUser(userId) {
   }
 }
 
-// Ajustar balance de usuario
 async function adjustBalance(userId) {
   const amount = prompt('Ingresa el monto a ajustar (usa - para restar):');
   
@@ -428,6 +419,11 @@ async function adjustBalance(userId) {
     return;
   }
   
+  if (response.status === 403) {
+    alert('No tienes permisos para modificar el balance de este usuario');
+    return;
+  }
+  
   const data = await response.json();
   
   if (data.success) {
@@ -438,7 +434,6 @@ async function adjustBalance(userId) {
   }
 }
 
-// Cerrar modal
 function closeModal() {
   const modal = document.querySelector('.modal-overlay');
   if (modal) {
@@ -446,7 +441,6 @@ function closeModal() {
   }
 }
 
-// Buscar usuarios
 function searchUsers() {
   const input = document.getElementById('searchUser');
   const filter = input.value.toLowerCase();
@@ -459,7 +453,6 @@ function searchUsers() {
   }
 }
 
-// Event listener para búsqueda
 document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('searchUser');
   if (searchInput) {

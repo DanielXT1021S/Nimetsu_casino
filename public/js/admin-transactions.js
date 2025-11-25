@@ -1,37 +1,29 @@
-// admin-transactions.js - Funcionalidades de gestión de transacciones
+// admin-transactions.js 
 
-// Ver detalles de transacción
 async function viewTransaction(transactionId) {
   try {
-    console.log('Solicitando transacción:', transactionId);
-    
+
     const response = await adminFetch(`/admin/api/transaction/${transactionId}/history`);
     
     if (!response) {
-      console.error('No se recibió respuesta del servidor');
       alert('Error al cargar detalles de la transacción');
       return;
     }
-    
-    console.log('Respuesta recibida, status:', response.status);
+ 
     
     const data = await response.json();
-    console.log('Datos recibidos:', data);
-    
+
     if (!data.ok) {
-      console.error('Error en respuesta:', data.message);
       alert(data.message || 'Error al cargar detalles');
       return;
     }
     
     showTransactionModal(data.transaction, data.history);
   } catch (error) {
-    console.error('Error capturado:', error);
     alert('Error al cargar detalles de la transacción: ' + error.message);
   }
 }
 
-// Mostrar modal con detalles y historial
 function showTransactionModal(transaction, history) {
   const isPending = transaction.status === 'pending' || transaction.status === 'processing';
   const isDeposit = transaction.type === 'deposit';
@@ -309,11 +301,9 @@ ${transaction.email || 'NO ESPECIFICADO'}
   });
 }
 
-// Aprobar transacción
 async function approveTransaction(transactionId) {
   const confirmedAmount = document.getElementById('confirmed-amount')?.value;
   const reason = document.getElementById('approval-reason')?.value;
-
   if (!confirmedAmount || parseFloat(confirmedAmount) <= 0) {
     alert('Por favor, ingresa el monto confirmado de la transferencia');
     return;
@@ -331,32 +321,41 @@ async function approveTransaction(transactionId) {
 
   const fullReason = `Monto confirmado: $${parseInt(confirmedAmount).toLocaleString('es-CL')} CLP. ${reason ? 'Observaciones: ' + reason : 'Sin observaciones adicionales.'}`;
 
-  const response = await adminFetch(`/admin/api/transaction/${transactionId}/status`, {
-    method: 'POST',
-    body: JSON.stringify({ 
-      status: 'completed',
-      reason: fullReason,
-      confirmedAmount: parseFloat(confirmedAmount)
-    })
-  });
+  try {
+    const response = await adminFetch(`/admin/api/transaction/${transactionId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        status: 'completed',
+        reason: fullReason,
+        confirmedAmount: parseFloat(confirmedAmount)
+      })
+    });
 
-  if (!response) {
-    alert('Error al aprobar transacción');
-    return;
-  }
+    if (!response) {
+      alert('Error: No se pudo conectar con el servidor');
+      return;
+    }
 
-  const data = await response.json();
+    if (response.status === 403) {
+      alert('No tienes permisos para aprobar esta transacción');
+      closeModal();
+      return;
+    }
 
-  if (data.success) {
-    alert('Transacción aprobada exitosamente');
-    closeModal();
-    refreshPage();
-  } else {
-    alert('Error: ' + (data.message || 'No se pudo aprobar la transacción'));
+    const data = await response.json();
+
+    if (data.success || data.ok) {
+      alert('Transacción aprobada exitosamente');
+      closeModal();
+      setTimeout(() => window.location.reload(), 500);
+    } else {
+      alert('Error: ' + (data.message || 'No se pudo aprobar la transacción'));
+    }
+  } catch (error) {
+    alert('Error al aprobar transacción: ' + error.message);
   }
 }
 
-// Rechazar transacción
 async function rejectTransaction(transactionId) {
   const reason = document.getElementById('approval-reason')?.value;
 
@@ -369,27 +368,37 @@ async function rejectTransaction(transactionId) {
   
   if (!confirm(confirmMsg)) return;
 
-  const response = await adminFetch(`/admin/api/transaction/${transactionId}/status`, {
-    method: 'POST',
-    body: JSON.stringify({ 
-      status: 'rejected',
-      reason: 'Rechazado. Motivo: ' + reason
-    })
-  });
+  try {
+    const response = await adminFetch(`/admin/api/transaction/${transactionId}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        status: 'rejected',
+        reason: 'Rechazado. Motivo: ' + reason
+      })
+    });
 
-  if (!response) {
-    alert('Error al rechazar transacción');
-    return;
-  }
+    if (!response) {
+      alert('Error: No se pudo conectar con el servidor');
+      return;
+    }
 
-  const data = await response.json();
+    if (response.status === 403) {
+      alert('❌ No tienes permisos para rechazar esta transacción');
+      closeModal();
+      return;
+    }
 
-  if (data.success) {
-    alert('Transacción rechazada');
-    closeModal();
-    refreshPage();
-  } else {
-    alert('Error: ' + (data.message || 'No se pudo rechazar la transacción'));
+    const data = await response.json();
+
+    if (data.success || data.ok) {
+      alert('Transacción rechazada');
+      closeModal();
+      setTimeout(() => window.location.reload(), 500);
+    } else {
+      alert('Error: ' + (data.message || 'No se pudo rechazar la transacción'));
+    }
+  } catch (error) {
+  alert('Error al rechazar transacción: ' + error.message);
   }
 }
 
@@ -400,7 +409,6 @@ function closeModal() {
   }
 }
 
-// Formatear método de pago
 function formatPaymentMethod(method) {
   const methods = {
     'bank_transfer': 'Transferencia Bancaria',
@@ -413,7 +421,6 @@ function formatPaymentMethod(method) {
   return methods[method] || method || 'No especificado';
 }
 
-// Copiar datos bancarios
 function copyBankData(transactionId) {
   const bankDataElement = document.getElementById(`bank-data-${transactionId}`);
   if (!bankDataElement) {
@@ -423,7 +430,6 @@ function copyBankData(transactionId) {
   
   const bankData = bankDataElement.textContent.trim();
   
-  // Crear elemento temporal para copiar
   const textarea = document.createElement('textarea');
   textarea.value = bankData;
   textarea.style.position = 'fixed';
@@ -434,7 +440,6 @@ function copyBankData(transactionId) {
   try {
     document.execCommand('copy');
     
-    // Cambiar texto del botón temporalmente
     const btn = event.target.closest('.btn-copy-bank');
     const originalHTML = btn.innerHTML;
     btn.innerHTML = `
@@ -461,7 +466,6 @@ function copyBankData(transactionId) {
   }
 }
 
-// Actualizar estado de transacción
 async function updateStatus(transactionId, newStatus) {
   const confirmMsg = newStatus === 'completed' 
     ? '¿Aprobar esta transacción?' 
@@ -488,10 +492,10 @@ async function updateStatus(transactionId, newStatus) {
   
   const data = await response.json();
   
-  if (data.success) {
+  if (data.success || data.ok) {
     alert(`Transacción actualizada a: ${newStatus}`);
-    refreshPage();
+    setTimeout(() => window.location.reload(), 500);
   } else {
-    alert('Error: ' + data.message);
+    alert(' Error: ' + data.message);
   }
 }

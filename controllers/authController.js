@@ -194,6 +194,20 @@ async function renderAdminSelector(req, res) {
 }
 
 function logout(req, res) {
+  const isSecure = req.headers['x-forwarded-proto'] === 'https' || req.secure;
+  
+  res.clearCookie('nimetsuCasinoToken', {
+    httpOnly: true,
+    secure: isSecure,
+    sameSite: isSecure ? 'none' : 'lax',
+    path: '/',
+    domain: req.hostname === 'localhost' ? undefined : '.nimetsu.com'
+  });
+
+  if (req.xhr || req.headers.accept?.indexOf('json') > -1) {
+    return res.json({ ok: true, message: 'Sesión cerrada correctamente' });
+  }
+
   res.redirect('/login');
 }
 

@@ -1,23 +1,23 @@
 // public/js/slots.js - Slots 5x3
 
-// Símbolos con pesos (mayor peso = más común)
+
 const SYMBOL_WEIGHTS = {
-  '🍎': 15,  // Muy común
-  '🍊': 15,  // Muy común
-  '🍋': 15,  // Muy común
-  '🍇': 12,  // Común
-  '💎': 8,   // Poco común
-  '👑': 6,   // Raro
-  '🌟': 4,   // Muy raro
-  '7️⃣': 2    // JACKPOT - Extremadamente raro
+  '🍎': 15, 
+  '🍊': 15, 
+  '🍋': 15, 
+  '🍇': 12, 
+  '💎': 8,   
+  '👑': 6,  
+  '🌟': 4, 
+  '7️⃣': 2   
 };
 
 const SYMBOLS = Object.keys(SYMBOL_WEIGHTS);
 
-// Tabla de pagos
+
 const PAYOUTS = {
   '🌟': { 5: 500, 4: 100, 3: 20 },
-  '7️⃣': { 5: 1000, 4: 400, 3: 200 }, // JACKPOT con pagos mucho mayores
+  '7️⃣': { 5: 1000, 4: 400, 3: 200 }, 
   '👑': { 5: 100, 4: 50, 3: 10 },
   '💎': { 5: 75, 4: 40, 3: 8 },
   '🍇': { 5: 50, 4: 25, 3: 6 },
@@ -26,7 +26,6 @@ const PAYOUTS = {
   '🍋': { 5: 25, 4: 15, 3: 5 },
 };
 
-// Función para obtener símbolo aleatorio con pesos
 function getWeightedSymbol() {
   const totalWeight = Object.values(SYMBOL_WEIGHTS).reduce((a, b) => a + b, 0);
   let random = Math.random() * totalWeight;
@@ -47,7 +46,6 @@ let gameState = {
   remainingAutoSpins: 0,
 };
 
-// Elementos del DOM
 const spinBtn       = document.getElementById('spinBtn');
 const autoBtn       = document.getElementById('autoBtn');
 const betInput      = document.getElementById('betInput');
@@ -56,7 +54,6 @@ const menuBalance   = document.getElementById('menuBalance');
 const currentBetEl  = document.getElementById('currentBet');
 const winningsEl    = document.getElementById('winnings');
 
-// Modales
 const rulesModal = document.getElementById('rulesModal');
 const rulesModalOverlay = document.getElementById('rulesModalOverlay');
 const rulesModalClose = document.getElementById('rulesModalClose');
@@ -67,11 +64,9 @@ const prizesModalOverlay = document.getElementById('prizesModalOverlay');
 const prizesModalClose = document.getElementById('prizesModalClose');
 const prizesModalBody = document.getElementById('prizesModalBody');
 
-// Botones del menú
 const rulesBtn = document.getElementById('rulesBtn');
 const prizesBtn = document.getElementById('prizesBtn');
 
-// Pantalla completa
 const settingsBtn = document.getElementById('settingsBtn');
 const settingsModal = document.getElementById('settingsModal');
 const settingsModalOverlay = document.getElementById('settingsModalOverlay');
@@ -82,18 +77,15 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const quickChips      = document.querySelectorAll('.chip-btn');
 const toast           = document.getElementById('toast');
 
-// Display de resultado en el panel
 const resultDisplay       = document.getElementById('resultDisplay');
 const resultDisplayTitle  = document.getElementById('resultDisplayTitle');
 const resultDisplayAmount = document.getElementById('resultDisplayAmount');
 const resultDisplayIcon   = document.getElementById('resultIcon');
 
-// Auto-spin elements
 const autoSpinBtns    = document.querySelectorAll('.auto-spin-btn:not(.stop-auto)');
 const autoSpinCounter = document.getElementById('autoSpinCounter');
 const remainingSpinsEl = document.getElementById('remainingSpins');
 
-// Columnas de la matriz 5x3
 const columns = {
   column1: document.getElementById('column1'),
   column2: document.getElementById('column2'),
@@ -102,16 +94,17 @@ const columns = {
   column5: document.getElementById('column5'),
 };
 
-// ============================
-// Verificar sesión y cargar datos
-// ============================
 document.addEventListener('DOMContentLoaded', () => {
+ 
+  const token = localStorage.getItem('nimetsuCasinoToken');
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
+  
   loadGameData();
 });
 
-// ============================
-// Cargar datos iniciales
-// ============================
 async function loadGameData() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
@@ -137,23 +130,18 @@ async function loadGameData() {
     if (data && typeof data.balance === 'number') {
       gameState.balance = data.balance;
       updateBalanceDisplay();
-      console.log('Balance loaded successfully:', gameState.balance);
     } else {
-      console.error('Invalid balance data:', data);
+  
       gameState.balance = 0;
       updateBalanceDisplay();
     }
   } catch (error) {
-    console.error('Error loading balance:', error);
     showToast('Error al cargar saldo: ' + error.message, 'error');
     gameState.balance = 0;
     updateBalanceDisplay();
   }
 }
 
-// ============================
-// Actualizar display de balance
-// ============================
 function updateBalanceDisplay() {
   const n = Number(gameState.balance) || 0;
   const formatted = `$${n.toLocaleString()}`;
@@ -165,9 +153,6 @@ function updateBalanceDisplay() {
   }
 }
 
-// ============================
-// Quick chips
-// ============================
 quickChips.forEach(chip => {
   chip.addEventListener('click', () => {
     const amount = parseInt(chip.dataset.amount, 10) || 0;
@@ -177,27 +162,19 @@ quickChips.forEach(chip => {
   });
 });
 
-// ============================
-// Botón Auto-Girar/Detener
-// ============================
 autoBtn.addEventListener('click', () => {
   if (gameState.autoSpinMode) {
-    // Si está en modo auto, detener
+   
     stopAutoSpin();
   } else {
-    // Si no está en modo auto, activar con 1 giro continuo
-    startAutoSpin(999); // Número alto para "infinito"
+    
+    startAutoSpin(999);
   }
 });
 
-// ============================
-// Botón spin
-// ============================
 spinBtn.addEventListener('click', performSpin);
 
-// ============================
-// Auto-spin buttons
-// ============================
+
 autoSpinBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     const spins = parseInt(btn.dataset.spins, 10);
@@ -205,9 +182,6 @@ autoSpinBtns.forEach(btn => {
   });
 });
 
-// ============================
-// Start auto-spin mode
-// ============================
 function startAutoSpin(spins) {
   if (gameState.isSpinning || gameState.autoSpinMode) return;
   
@@ -226,53 +200,39 @@ function startAutoSpin(spins) {
   gameState.autoSpinMode = true;
   gameState.remainingAutoSpins = spins;
   
-  // Actualizar UI del botón
   autoBtn.classList.add('active');
   autoBtn.querySelector('.btn-text').textContent = 'DETENER';
   
-  // Mostrar contador si no es modo infinito
   if (spins < 900) {
     autoSpinCounter.classList.add('active');
     updateAutoSpinCounter();
   }
   
-  // Marcar botón activo si se seleccionó uno
   autoSpinBtns.forEach(b => b.classList.remove('active'));
   const activeBtn = Array.from(autoSpinBtns).find(b => parseInt(b.dataset.spins) === spins);
   if (activeBtn) activeBtn.classList.add('active');
   
-  // Iniciar primera tirada
   performSpin();
 }
 
-// ============================
-// Stop auto-spin mode
-// ============================
 function stopAutoSpin() {
   gameState.autoSpinMode = false;
   gameState.remainingAutoSpins = 0;
   autoSpinCounter.classList.remove('active');
   autoSpinBtns.forEach(b => b.classList.remove('active'));
   
-  // Restaurar botón
   autoBtn.classList.remove('active');
   autoBtn.querySelector('.btn-text').textContent = 'AUTO GIRAR';
   
   showToast('Auto-spin detenido', 'info');
 }
 
-// ============================
-// Update auto-spin counter
-// ============================
 function updateAutoSpinCounter() {
   if (remainingSpinsEl) {
     remainingSpinsEl.textContent = gameState.remainingAutoSpins;
   }
 }
 
-// ============================
-// Validar entrada de apuesta
-// ============================
 betInput.addEventListener('change', (e) => {
   let value = parseInt(e.target.value, 10) || 0;
 
@@ -284,13 +244,9 @@ betInput.addEventListener('change', (e) => {
   currentBetEl.textContent = `$${value.toLocaleString('es-AR')}`;
 });
 
-// ============================
-// Función principal de spin
-// ============================
 async function performSpin() {
   const bet = parseInt(betInput.value, 10) || 0;
 
-  // Validar apuesta
   if (bet < 10) {
     showToast('Apuesta mínima: $10', 'error');
     return;
@@ -314,35 +270,28 @@ async function performSpin() {
   spinBtn.disabled = true;
   spinBtn.classList.add('spinning');
   
-  // Agregar clase spinning a la máquina (ambas versiones para compatibilidad)
   const slotMachine = document.querySelector('.slot-machine, .slots-machine');
   if (slotMachine) {
     slotMachine.classList.add('spinning');
   }
-
-  // LIMPIEZA EXHAUSTIVA antes de iniciar
   document.querySelectorAll('.symbol-cell, .reel-cell').forEach(cell => {
     cell.classList.remove('winning', 'landed');
   });
   
-  // Resetear todos los símbolos a su estado base
   document.querySelectorAll('.symbol, .reel-symbol').forEach(symbol => {
     symbol.removeAttribute('style');
     symbol.classList.remove('highlight');
   });
   
-  // Ocultar línea ganadora
   const winningLine = document.querySelector('.winning-line');
   if (winningLine) {
     winningLine.classList.remove('active');
   }
   
-  // Remover cualquier clase spinning residual de las columnas
   Object.values(columns).forEach(column => {
     if (column) column.classList.remove('spinning');
   });
   
-  // Forzar reflow
   void document.body.offsetHeight;
 
   try {
@@ -358,7 +307,7 @@ async function performSpin() {
     });
 
     const result = await res.json();
-    console.log('[slots:spin] result =', result);
+  
 
     if (!res.ok || !result.success) {
       const msg = result.message || 'Error en el spin';
@@ -366,111 +315,94 @@ async function performSpin() {
       throw new Error(msg);
     }
 
-    // Animar reels con el resultado del servidor
     await animateReels(result.result);
 
-    // Actualizar saldo con el valor que viene del backend
     gameState.balance = Number(result.balance) || gameState.balance;
     updateBalanceDisplay();
 
-    // Procesar resultado
     if (result.isWin) {
       updateResultDisplay(bet, result.winAmount, true, result.multiplier);
       showResultModal(true, result.winAmount);
       playWinAnimation();
     } else {
       updateResultDisplay(bet, 0, false, 0);
-      showResultModal(false, bet); // mostramos lo perdido
+      showResultModal(false, bet);
     }
   } catch (error) {
     console.error('Error en performSpin:', error);
-    // Toast ya mostrado arriba
+   
   } finally {
     gameState.isSpinning = false;
     spinBtn.disabled = false;
     spinBtn.classList.remove('spinning');
     
-    // Remover clase spinning de la máquina (ambas versiones)
     const slotMachine = document.querySelector('.slot-machine, .slots-machine');
     if (slotMachine) {
       slotMachine.classList.remove('spinning');
     }
     
-    // Manejar auto-spin
     if (gameState.autoSpinMode && gameState.remainingAutoSpins > 0) {
       gameState.remainingAutoSpins--;
       updateAutoSpinCounter();
       
       if (gameState.remainingAutoSpins > 0) {
-        // Continuar con el siguiente giro después de un delay
+       
         setTimeout(() => {
           if (gameState.autoSpinMode) {
             performSpin();
           }
-        }, 1500); // 1.5 segundos entre giros
+        }, 1500); 
       } else {
-        // Terminar auto-spin
         stopAutoSpin();
       }
     }
   }
 }
 
-// ============================
-// Animar reels 5x3 - Fluido y optimizado
-// ============================
 async function animateReels(result) {
-  const duration = 2000; // Reducido a 2 segundos para más fluidez
+  const duration = 2000; 
   const startTime = Date.now();
   let animationFrameId;
 
-  // PASO 1: LIMPIAR ABSOLUTAMENTE TODO antes de empezar
   Object.values(columns).forEach(column => {
     if (!column) return;
     
-    // Remover TODAS las clases posibles
     column.classList.remove('spinning');
     
     column.querySelectorAll('.symbol-cell, .reel-cell').forEach(cell => {
-      // Limpiar todas las clases de animación
+  
       cell.classList.remove('landed', 'winning');
       
-      // Resetear el símbolo
       const symbolEl = cell.querySelector('.symbol, .reel-symbol');
       if (symbolEl) {
-        // Limpiar estilos inline
+ 
         symbolEl.removeAttribute('style');
-        // Limpiar clases
+
         symbolEl.classList.remove('highlight');
       }
     });
   });
 
-  // Limpiar línea ganadora anterior
   const winningLine = document.querySelector('.winning-line');
   if (winningLine) {
     winningLine.classList.remove('active');
   }
 
-  // FORZAR REFLOW para aplicar la limpieza
   void document.body.offsetHeight;
 
-  // PASO 2: Esperar un momento antes de iniciar spinning
   await new Promise(resolve => setTimeout(resolve, 50));
   
-  // PASO 3: Iniciar spinning en todas las columnas
   Object.values(columns).forEach(column => {
     if (column) column.classList.add('spinning');
   });
 
-  // PASO 4: Animar símbolos cambiando más rápido
   return new Promise(resolve => {
     const animate = () => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
 
       if (progress < 1) {
-        // Cambiar símbolos mientras gira
+       
         Object.values(columns).forEach(column => {
           if (!column) return;
           const cells = column.querySelectorAll('.symbol-cell, .reel-cell');
@@ -482,11 +414,10 @@ async function animateReels(result) {
           });
         });
 
-        // Velocidad más fluida
         const speed = 1 - progress;
         animationFrameId = setTimeout(animate, 40 * (1 - speed * 0.85));
       } else {
-        // PASO 5: DETENER spinning COMPLETAMENTE
+       
         stopSpinning(result, resolve);
       }
     };
@@ -495,11 +426,9 @@ async function animateReels(result) {
   });
 }
 
-// Función separada para detener el spinning y mostrar resultado
-// Detiene FILA POR FILA con efecto de caída fluido
 function stopSpinning(result, resolve) {
   if (!result || !result.grid) {
-    // Si no hay resultado, asegurar limpieza completa
+   
     Object.values(columns).forEach(column => {
       if (column) column.classList.remove('spinning');
     });
@@ -509,10 +438,9 @@ function stopSpinning(result, resolve) {
 
   const totalRows = 3;
 
-  // Función para detener una fila específica con efecto cascada
   const stopRow = (rowIndex) => {
     return new Promise(rowResolve => {
-      // Para cada columna, detener la celda de esta fila
+     
       result.grid.forEach((columnData, colIndex) => {
         const colKey = `column${colIndex + 1}`;
         const column = columns[colKey];
@@ -522,10 +450,8 @@ function stopSpinning(result, resolve) {
         const cell = cells[rowIndex];
         if (!cell) return;
         
-        // Limpiar clases antes de establecer símbolo
         cell.classList.remove('landed', 'winning');
         
-        // Establecer el símbolo final
         const symbolEl = cell.querySelector('.symbol, .reel-symbol');
         if (symbolEl) {
           symbolEl.textContent = columnData[rowIndex];
@@ -533,27 +459,23 @@ function stopSpinning(result, resolve) {
           symbolEl.classList.remove('highlight');
         }
         
-        // Agregar animación de caída con delay por columna para efecto cascada
         setTimeout(() => {
           cell.classList.add('landed');
           setTimeout(() => {
             cell.classList.remove('landed');
           }, 380);
-        }, colIndex * 30); // Delay más corto para mayor fluidez
+        }, colIndex * 30); 
       });
-      
-      // Esperar a que termine la animación de esta fila
+
       setTimeout(rowResolve, 420);
     });
   };
 
-  // Detener fila por fila con timing optimizado
   const stopAllRows = async () => {
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
-      // Delay entre filas más corto para mayor fluidez
+   
       await new Promise(resolve => setTimeout(resolve, 120));
       
-      // Si es la última fila, remover spinning de todas las columnas
       if (rowIndex === totalRows - 1) {
         Object.values(columns).forEach(column => {
           if (column) {
@@ -566,10 +488,8 @@ function stopSpinning(result, resolve) {
       await stopRow(rowIndex);
     }
     
-    // Pausa mínima antes de mostrar ganancia
     await new Promise(resolve => setTimeout(resolve, 80));
     
-    // Mostrar ganancia si existe
     if (result.winningCells && result.winningCells.length > 0) {
       const winningLine = document.querySelector('.winning-line');
       if (winningLine) winningLine.classList.add('active');
@@ -592,7 +512,6 @@ function stopSpinning(result, resolve) {
       createWinParticles();
     }
     
-    // Verificación final
     setTimeout(() => {
       Object.values(columns).forEach(column => {
         if (column) column.classList.remove('spinning');
@@ -604,9 +523,6 @@ function stopSpinning(result, resolve) {
   stopAllRows();
 }
 
-// ============================
-// Actualizar display de resultados
-// ============================
 function updateResultDisplay(bet, winnings, isWin, multiplier) {
   currentBetEl.textContent = `$${bet.toLocaleString('es-AR')}`;
   winningsEl.textContent   = `$${winnings.toLocaleString('es-AR')}`;
@@ -630,14 +546,10 @@ function updateResultDisplay(bet, winnings, isWin, multiplier) {
   }
 }
 
-// ============================
-// Mostrar resultado en el panel
-// ============================
 function showResultModal(isWin, amount) {
-  // Remover clases previas
+
   resultDisplay.classList.remove('win', 'lose');
   
-  // Configurar contenido según resultado
   if (isWin) {
     resultDisplayIcon.textContent = '✓';
     resultDisplayTitle.textContent = '¡GANASTE!';
@@ -650,28 +562,19 @@ function showResultModal(isWin, amount) {
     resultDisplay.classList.add('lose');
   }
 
-  // Siempre mantener visible con animación
   resultDisplay.classList.add('show');
   
-  // La pantalla permanece mostrando el último resultado
-  // No se oculta automáticamente
 }
 
-// ============================
-// Cerrar display de resultado (ya no se usa modal)
-// ============================
 function closeResultModal() {
   resultDisplay.classList.remove('show');
 }
 
-// ============================
-// Animación de ganancia
-// ============================
 function playWinAnimation() {
   const elements = document.querySelectorAll('.reel-symbol');
   elements.forEach((el, index) => {
     el.style.animation = 'none';
-    // reflow para reiniciar animación
+    
     void el.offsetWidth;
     setTimeout(() => {
       el.style.animation = 'pulse 0.5s ease 2';
@@ -679,9 +582,6 @@ function playWinAnimation() {
   });
 }
 
-// ============================
-// Toast notifications
-// ============================
 function showToast(message, type = 'info') {
   let toast = document.getElementById('toast');
   
@@ -701,9 +601,6 @@ function showToast(message, type = 'info') {
   }, 3500);
 }
 
-// ============================
-// Menú lateral
-// ============================
 function openMenu() {
   const sideMenu = document.getElementById('sideMenu');
   const menuOverlay = document.getElementById('menuOverlay');
@@ -720,9 +617,6 @@ function closeMenu() {
   if (menuOverlay) menuOverlay.classList.remove('active');
 }
 
-// ============================
-// Modal de Reglas
-// ============================
 function openRulesModal() {
   if (!rulesModal) return;
   
@@ -812,9 +706,6 @@ function closeRulesModal() {
   }
 }
 
-// ============================
-// Modal de Premios
-// ============================
 function openPrizesModal() {
   if (!prizesModal) return;
   
@@ -942,9 +833,6 @@ function closePrizesModal() {
   }
 }
 
-// ============================
-// Modal de Configuración (Pantalla Completa)
-// ============================
 function openSettingsModal() {
   if (!settingsModal) return;
   settingsModal.classList.add('show');
@@ -968,9 +856,6 @@ function toggleFullscreen() {
   }
 }
 
-// ============================
-// Efecto de partículas ganadoras
-// ============================
 function createWinParticles() {
   const machineScreen = document.querySelector('.machine-screen');
   if (!machineScreen) return;
@@ -980,8 +865,7 @@ function createWinParticles() {
   for (let i = 0; i < particleCount; i++) {
     const particle = document.createElement('div');
     particle.className = 'win-particle';
-    
-    // Posición aleatoria
+   
     const startX = Math.random() * 100;
     const startY = Math.random() * 100;
     const endX = startX + (Math.random() - 0.5) * 50;
@@ -1005,7 +889,6 @@ function createWinParticles() {
     
     machineScreen.appendChild(particle);
     
-    // Animar usando Web Animations API (seguro y sin cross-origin issues)
     requestAnimationFrame(() => {
       particle.animate([
         {
@@ -1023,16 +906,12 @@ function createWinParticles() {
       });
     });
     
-    // Remover partícula después de la animación
     setTimeout(() => {
       particle.remove();
     }, duration * 1000 + 100);
   }
 }
 
-// ============================
-// Setup de Event Listeners
-// ============================
 function setupMenuListeners() {
   const menuBtn = document.getElementById('menuBtn');
   const closeMenuBtn = document.getElementById('closeMenuBtn');
@@ -1042,7 +921,14 @@ function setupMenuListeners() {
   if (closeMenuBtn) closeMenuBtn.addEventListener('click', closeMenu);
   if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
   
-  // Modales de reglas y premios
+  const logoutLinks = document.querySelectorAll('a[href="/logout"]');
+  logoutLinks.forEach(link => {
+    link.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await handleLogout();
+    });
+  });
+  
   if (rulesBtn) rulesBtn.addEventListener('click', openRulesModal);
   if (rulesModalClose) rulesModalClose.addEventListener('click', closeRulesModal);
   if (rulesModalOverlay) rulesModalOverlay.addEventListener('click', closeRulesModal);
@@ -1051,22 +937,15 @@ function setupMenuListeners() {
   if (prizesModalClose) prizesModalClose.addEventListener('click', closePrizesModal);
   if (prizesModalOverlay) prizesModalOverlay.addEventListener('click', closePrizesModal);
   
-  // Modal de configuración
   if (settingsBtn) settingsBtn.addEventListener('click', openSettingsModal);
   if (settingsModalClose) settingsModalClose.addEventListener('click', closeSettingsModal);
   if (settingsModalOverlay) settingsModalOverlay.addEventListener('click', closeSettingsModal);
   if (fullscreenToggle) fullscreenToggle.addEventListener('click', toggleFullscreen);
   
-  // Botón fullscreen del topbar
   if (fullscreenBtn) fullscreenBtn.addEventListener('click', toggleFullscreen);
-  
-  console.log('Menu listeners setup complete');
-  console.log('rulesBtn:', rulesBtn);
-  console.log('prizesBtn:', prizesBtn);
-  console.log('settingsBtn:', settingsBtn);
+
 }
 
-// Botón salir
 const exitBtn = document.querySelector('.exit-btn');
 if (exitBtn) {
   exitBtn.addEventListener('click', () => {
@@ -1074,5 +953,21 @@ if (exitBtn) {
   });
 }
 
-// Inicializar menú
+async function handleLogout() {
+  try {
+    await fetch('/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (err) {}
+  
+  localStorage.removeItem('nimetsuCasinoToken');
+  localStorage.removeItem('nimetsuCasinoUser');
+  localStorage.removeItem('nimetsuCasinoBalance');
+  
+  document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  
+  window.location.href = '/login';
+}
+
 setupMenuListeners();

@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 function authRequired(req, res, next) {
   try {
-    // Obtener el header Authorization (prueba ambas variantes)
+   
     let authHeader = req.headers['authorization'];
     if (!authHeader) {
       authHeader = req.headers['Authorization'];
@@ -18,7 +18,6 @@ function authRequired(req, res, next) {
       });
     }
 
-    // Esperamos: "Bearer <token>"
     const parts = authHeader.trim().split(' ');
     
     if (parts.length !== 2) {
@@ -44,10 +43,8 @@ function authRequired(req, res, next) {
       });
     }
 
-    // Verificar token
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Guardar info del usuario en la request (incluir role)
     req.user = {
       userId  : payload.userId,
       nickname: payload.nickname,
@@ -81,9 +78,16 @@ function authRequired(req, res, next) {
 }
 
 function authRequiredPage(req, res, next) {
+
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   try {
- 
     let token = null;
+    
     if (req.cookies && req.cookies.nimetsuCasinoToken) {
       token = req.cookies.nimetsuCasinoToken;
     }
@@ -111,9 +115,10 @@ function authRequiredPage(req, res, next) {
     }
     
     if (!token) {
+      console.log('authRequiredPage: No token found, redirecting to login');
       return res.redirect('/login');
     }
-    
+
     const payload = jwt.verify(token, process.env.JWT_SECRET);
   
     req.user = {
@@ -125,7 +130,16 @@ function authRequiredPage(req, res, next) {
     
     return next();
   } catch (err) {
-    console.error('Error en authRequiredPage:', err);
+    console.error('Error en authRequiredPage:', err.message);
+ 
+    const isSecure = req.headers['x-forwarded-proto'] === 'https' || req.secure;
+    res.clearCookie('nimetsuCasinoToken', {
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: isSecure ? 'none' : 'lax',
+      path: '/',
+      domain: req.hostname === 'localhost' ? undefined : '.nimetsu.com'
+    });
   
     return res.redirect('/login');
   }
@@ -133,6 +147,12 @@ function authRequiredPage(req, res, next) {
 
 
 function mustBeAdminPage(req, res, next) {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, private',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  
   try {
    
     let token = null;
@@ -260,6 +280,10 @@ function mustBeAdmin(req, res, next) {
     return res.redirect('/login');
   }
 }
+
+
+
+
 
 function optionalAuth(req, res, next) {
   try {

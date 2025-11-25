@@ -1,4 +1,5 @@
 // Elementos del DOM
+
 const gameCards = document.querySelectorAll('.game-card');
 const playButtons = document.querySelectorAll('.btn-play');
 const confirmModal = document.getElementById('confirmModal');
@@ -10,11 +11,9 @@ const userNameEl = document.getElementById('userName');
 const balanceAmountEl = document.getElementById('balanceAmount');
 const gameName = document.getElementById('gameName');
 
-// Mobile Menu Elements
 const mobileMenuToggle = document.getElementById('mobileMenuToggle');
 const navbarRight = document.getElementById('navbarRight');
 
-// Account Sidebar Elements
 const accountBtn = document.getElementById('accountBtn');
 const accountSidebar = document.getElementById('accountSidebar');
 const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -24,7 +23,6 @@ const profileEmail = document.getElementById('profileEmail');
 const sidebarBalance = document.getElementById('sidebarBalance');
 const logoutSidebarBtn = document.getElementById('logoutSidebarBtn');
 
-// Account Options
 const depositBtn = document.getElementById('depositBtn');
 const withdrawBtn = document.getElementById('withdrawBtn');
 const profileSettingsBtn = document.getElementById('profileSettingsBtn');
@@ -36,7 +34,6 @@ const refreshBalanceBtn = document.getElementById('refreshBalanceBtn');
 
 let selectedGame = null;
 
-// Juegos disponibles
 const games = {
   slots: { name: 'Slots', icon: '🎰' },
   blackjack: { name: 'Blackjack', icon: '🃏' },
@@ -46,18 +43,21 @@ const games = {
   baccarat: { name: 'Baccarat', icon: '💎' },
 };
 
-// Cargar datos del usuario al iniciar
 document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('nimetsuCasinoToken');
+  if (!token) {
+    window.location.href = '/login';
+    return;
+  }
+  
   loadUserData();
   
-  // Mobile Menu Toggle
   if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener('click', () => {
       mobileMenuToggle.classList.toggle('active');
       navbarRight.classList.toggle('active');
     });
 
-    // Cerrar menú móvil al hacer click fuera
     document.addEventListener('click', (e) => {
       if (!navbarRight.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
         mobileMenuToggle.classList.remove('active');
@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Cerrar menú móvil al hacer click en cualquier botón dentro
     navbarRight.addEventListener('click', (e) => {
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
         mobileMenuToggle.classList.remove('active');
@@ -74,16 +73,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
-  // Recargar balance cada 10 segundos
   setInterval(() => {
     const token = localStorage.getItem('nimetsuCasinoToken');
     if (token) {
       loadBalance(token);
     }
-  }, 10000);
+  }, 25000);
 });
 
-// Recargar balance cuando la ventana recupera el foco (usuario regresa de un juego)
 window.addEventListener('focus', () => {
   const token = localStorage.getItem('nimetsuCasinoToken');
   if (token) {
@@ -91,13 +88,12 @@ window.addEventListener('focus', () => {
   }
 });
 
-// Cargar datos del usuario desde localStorage
 function loadUserData() {
   const token = localStorage.getItem('nimetsuCasinoToken');
   const userStr = localStorage.getItem('nimetsuCasinoUser');
 
-  // Si no hay datos, simplemente no cargar (el servidor redirigirá)
   if (!token || !userStr) {
+    window.location.href = '/login';
     return;
   }
 
@@ -107,15 +103,16 @@ function loadUserData() {
   profileName.textContent = displayName;
   profileEmail.textContent = user.email;
 
-  // Cargar balance del servidor
   loadBalance(token);
 }
 
-// Cargar balance del usuario
 async function loadBalance(token) {
   try {
-    console.log('Token enviado:', token);
-    console.log('Header Authorization:', `Bearer ${token}`);
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
 
     const res = await fetch('/user/me', {
       method: 'GET',
@@ -125,15 +122,11 @@ async function loadBalance(token) {
       },
     });
 
-    console.log('Response status:', res.status);
-    console.log('Response ok:', res.ok);
-
     if (!res.ok) {
       const errorData = await res.json();
       console.error('Error response:', errorData);
       
       if (res.status === 401) {
-        // Token expirado
         localStorage.clear();
         window.location.href = '/login';
       }
@@ -141,9 +134,7 @@ async function loadBalance(token) {
     }
 
     const data = await res.json();
-    console.log('Balance data:', data);
-    
-    // Actualizar el balance real del usuario
+  
     if (data.balance !== undefined) {
       const formattedBalance = `$${parseFloat(data.balance).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -151,26 +142,22 @@ async function loadBalance(token) {
       })}`;
       balanceAmountEl.textContent = formattedBalance;
       sidebarBalance.textContent = formattedBalance;
-      
-      // Guardar balance en localStorage para uso en juegos
+    
       localStorage.setItem('nimetsuCasinoBalance', data.balance);
     } else {
       balanceAmountEl.textContent = '$0.00';
       sidebarBalance.textContent = '$0.00';
     }
 
-    // Actualizar estadísticas si existen
     if (data.stats) {
       updateStats(data.stats);
     }
   } catch (err) {
-    console.error('Error al cargar balance:', err);
     balanceAmountEl.textContent = '$0.00';
     sidebarBalance.textContent = '$0.00';
   }
 }
 
-// Actualizar estadísticas
 function updateStats(stats) {
   const totalGamesEl = document.getElementById('totalGames');
   const totalWinsEl = document.getElementById('totalWins');
@@ -185,50 +172,55 @@ function updateStats(stats) {
   }
 }
 
-// Event listeners para botones de juego
 playButtons.forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const gameId = btn.getAttribute('data-game');
+    
+    if (gameId === 'craps' || gameId === 'baccarat') {
+      showToast('Este juego estará disponible próximamente', 'info');
+      return;
+    }
+    
     selectedGame = gameId;
     gameName.textContent = games[gameId].name;
     openModal();
   });
 });
 
-// Event listeners para tarjetas de juego
 gameCards.forEach(card => {
   card.addEventListener('click', () => {
     const gameId = card.getAttribute('data-game');
+    
+    if (gameId === 'craps' || gameId === 'baccarat') {
+      showToast('Este juego estará disponible próximamente', 'info');
+      return;
+    }
+    
     selectedGame = gameId;
     gameName.textContent = games[gameId].name;
     openModal();
   });
 });
 
-// Abrir modal
 function openModal() {
   confirmModal.classList.add('active');
 }
 
-// Cerrar modal
 function closeModal() {
   confirmModal.classList.remove('active');
 }
 
-// Cancel button
 cancelBtn.addEventListener('click', () => {
   closeModal();
 });
 
-// Confirm button - Ir al juego
 confirmBtn.addEventListener('click', () => {
   if (selectedGame) {
     closeModal();
     showToast(`Iniciando ${games[selectedGame].name}...`, 'success');
     
     setTimeout(() => {
-      // Redirigir al juego
       const gameRoutes = {
         blackjack: '/blackjack',
         roulette: '/roulette',
@@ -238,29 +230,44 @@ confirmBtn.addEventListener('click', () => {
         baccarat: '/baccarat'
       };
       window.location.href = gameRoutes[selectedGame] || `/game/${selectedGame}`;
-    }, 1500);
+    }, 750);
   }
 });
 
-// Cerrar modal al hacer click fuera
 confirmModal.addEventListener('click', (e) => {
   if (e.target === confirmModal) {
     closeModal();
   }
 });
 
-// Logout
-logoutBtn.addEventListener('click', () => {
-  localStorage.removeItem('nimetsuCasinoToken');
-  localStorage.removeItem('nimetsuCasinoUser');
-  showToast('Sesión cerrada correctamente', 'success');
-  
-  setTimeout(() => {
-    window.location.href = '/login';
-  }, 1000);
+logoutBtn.addEventListener('click', async () => {
+  try {
+    await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (err) {
+    console.error('Error en logout:', err);
+  } finally {
+   
+    localStorage.removeItem('nimetsuCasinoToken');
+    localStorage.removeItem('nimetsuCasinoUser');
+    localStorage.removeItem('nimetsuCasinoBalance');
+    
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nimetsu.com;';
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=juegos.nimetsu.com;';
+    
+    showToast('Sesión cerrada correctamente', 'success');
+    
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
+  }
 });
 
-// Mostrar notificación
 function showToast(message, type = 'success') {
   toast.textContent = message;
   toast.className = `toast active ${type}`;
@@ -270,17 +277,11 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
-// ==========================================
-// ACCOUNT SIDEBAR FUNCTIONALITY
-// ==========================================
-
-// Abrir sidebar
 accountBtn.addEventListener('click', () => {
   accountSidebar.classList.add('active');
   document.body.style.overflow = 'hidden';
 });
 
-// Cerrar sidebar
 function closeAccountSidebar() {
   accountSidebar.classList.remove('active');
   document.body.style.overflow = 'auto';
@@ -289,31 +290,48 @@ function closeAccountSidebar() {
 closeSidebar.addEventListener('click', closeAccountSidebar);
 sidebarOverlay.addEventListener('click', closeAccountSidebar);
 
-// Cerrar con ESC
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && accountSidebar.classList.contains('active')) {
     closeAccountSidebar();
   }
 });
 
-// Logout desde sidebar
-logoutSidebarBtn.addEventListener('click', () => {
-  localStorage.removeItem('nimetsuCasinoToken');
-  localStorage.removeItem('nimetsuCasinoUser');
-  showToast('Sesión cerrada correctamente', 'success');
+logoutSidebarBtn.addEventListener('click', async () => {
+  try {
+   
+    await fetch('/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (err) {
+    console.error('Error en logout:', err);
+  } finally {
+   
+    localStorage.removeItem('nimetsuCasinoToken');
+    localStorage.removeItem('nimetsuCasinoUser');
+    localStorage.removeItem('nimetsuCasinoBalance');
+    
   
-  setTimeout(() => {
-    window.location.href = '/login';
-  }, 1000);
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nimetsu.com;';
+    document.cookie = 'nimetsuCasinoToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=juegos.nimetsu.com;';
+    
+    showToast('Sesión cerrada correctamente', 'success');
+    
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 500);
+  }
 });
 
-// Account Options Handlers
 depositBtn.addEventListener('click', () => {
   window.location.href = '/recharge';
 });
 
 withdrawBtn.addEventListener('click', () => {
-  showToast('Función de retiro próximamente disponible', 'warning');
+  window.location.href = '/recharge#withdraw';
 });
 
 profileSettingsBtn.addEventListener('click', () => {
@@ -322,8 +340,7 @@ profileSettingsBtn.addEventListener('click', () => {
 });
 
 transactionHistoryBtn.addEventListener('click', () => {
-  showToast('Historial de transacciones próximamente disponible', 'warning');
-  closeAccountSidebar();
+  window.location.href = '/recharge#history';
 });
 
 gameHistoryBtn.addEventListener('click', () => {
@@ -341,28 +358,21 @@ notificationsBtn.addEventListener('click', () => {
   closeAccountSidebar();
 });
 
-// Refresh Balance Button
 refreshBalanceBtn.addEventListener('click', async () => {
   const token = localStorage.getItem('nimetsuCasinoToken');
   if (!token) return;
   
-  // Agregar animación de carga
   refreshBalanceBtn.classList.add('loading');
   refreshBalanceBtn.disabled = true;
   
   await loadBalance(token);
   
-  // Remover animación después de 1 segundo
   setTimeout(() => {
     refreshBalanceBtn.classList.remove('loading');
     refreshBalanceBtn.disabled = false;
     showToast('Saldo actualizado', 'success');
   }, 1000);
 });
-
-// ==========================================
-// GAME HISTORY FUNCTIONALITY
-// ==========================================
 
 async function loadGameHistory() {
   try {
@@ -395,7 +405,6 @@ function displayGameHistory(games) {
     return;
   }
 
-  // Crear modal de historial
   const modal = document.createElement('div');
   modal.className = 'history-modal active';
   modal.innerHTML = `
@@ -407,28 +416,28 @@ function displayGameHistory(games) {
       </div>
       <div class="history-stats">
         <div class="stat-summary">
-          <div class="stat-icon">🎮</div>
+          <div class="stat-icon"></div>
           <div class="stat-text">
             <span class="stat-number">${games.length}</span>
             <span class="stat-label">Partidas</span>
           </div>
         </div>
         <div class="stat-summary">
-          <div class="stat-icon">🏆</div>
+          <div class="stat-icon"></div>
           <div class="stat-text">
             <span class="stat-number">${games.filter(g => g.result === 'win').length}</span>
             <span class="stat-label">Victorias</span>
           </div>
         </div>
         <div class="stat-summary">
-          <div class="stat-icon">❌</div>
+          <div class="stat-icon"></div>
           <div class="stat-text">
             <span class="stat-number">${games.filter(g => g.result === 'loss').length}</span>
             <span class="stat-label">Derrotas</span>
           </div>
         </div>
         <div class="stat-summary">
-          <div class="stat-icon">💰</div>
+          <div class="stat-icon"></div>
           <div class="stat-text">
             <span class="stat-number ${getTotalProfit(games) >= 0 ? 'positive' : 'negative'}">
               ${getTotalProfit(games) >= 0 ? '+' : ''}$${Math.abs(getTotalProfit(games)).toFixed(2)}
@@ -449,7 +458,7 @@ function displayGameHistory(games) {
                 <div class="history-game-header">
                   <span class="history-game-type">${getGameName(game.gameType)}</span>
                   <span class="history-result-badge ${game.result}">
-                    ${game.result === 'win' ? '🏆 Victoria' : game.result === 'tie' ? '🤝 Empate' : '❌ Derrota'}
+                    ${game.result === 'win' ? 'Victoria' : game.result === 'tie' ? 'Empate' : 'Derrota'}
                   </span>
                 </div>
                 <div class="history-game-info">
@@ -576,7 +585,6 @@ function formatDate(dateString) {
   const now = new Date();
   const diff = now - date;
   
-  // Si fue hace menos de 24 horas, mostrar tiempo relativo
   if (diff < 86400000) {
     const hours = Math.floor(diff / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
@@ -590,7 +598,6 @@ function formatDate(dateString) {
     }
   }
   
-  // Si fue hace más de 24 horas, mostrar fecha
   return date.toLocaleString('es-ES', {
     day: '2-digit',
     month: 'short',
@@ -624,16 +631,12 @@ function getGameName(gameType) {
   return names[gameType] || gameType;
 }
 
-// ==========================================
-// RECHARGE BALANCE FUNCTIONALITY
-// ==========================================
 
 async function loadRechargeModal() {
   try {
     const token = localStorage.getItem('nimetsuCasinoToken');
     if (!token) return;
 
-    // Obtener paquetes disponibles
     const res = await fetch('/payment/packages', {
       method: 'GET',
       headers: {
@@ -710,7 +713,6 @@ function displayRechargeModal(packages) {
 
   document.body.appendChild(modal);
 
-  // Event Listeners
   const overlay = modal.querySelector('.recharge-modal-overlay');
   const closeBtn = modal.querySelector('.btn-close-recharge');
   const buyButtons = modal.querySelectorAll('.btn-buy-package');
@@ -730,7 +732,6 @@ function displayRechargeModal(packages) {
     });
   });
 
-  // Cerrar con ESC
   const handleEsc = (e) => {
     if (e.key === 'Escape') {
       closeRecharge();
@@ -765,7 +766,6 @@ async function initiateRecharge(packageId) {
       throw new Error(data.message || 'Error al crear preferencia de pago');
     }
 
-    // Redirigir a MercadoPago
     window.location.href = data.init_point;
   } catch (err) {
     console.error('Error al iniciar recarga:', err);

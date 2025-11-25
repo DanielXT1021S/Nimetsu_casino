@@ -1,6 +1,5 @@
 'use strict';
 
-const pool = require('../config/db');
 const { saveGameResult } = require('./userController');
 const balanceService = require('../services/balanceService');
 const gameFactory = require('../services/gameFactory');
@@ -117,7 +116,6 @@ async function playHand(req, res) {
     let result = '';
     let anteBonus = 0;
 
-    // Mapeo de bonus por tipo de mano
     const ANTE_BONUS = {
       'STRAIGHT_FLUSH': 5,
       'THREE_OF_A_KIND': 4,
