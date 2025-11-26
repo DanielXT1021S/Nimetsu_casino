@@ -3,6 +3,24 @@
 const pool = require('../config/db');
 const balanceService = require('../services/balanceService');
 
+async function getBalance(req, res) {
+  try {
+    const { userId } = req.user;
+
+    const balance = await balanceService.getOrCreateBalance(userId);
+
+    return res.json({
+      ok: true,
+      balance
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al obtener balance'
+    });
+  }
+}
+
 async function getProfile(req, res) {
   try {
     const { userId } = req.user;
@@ -125,5 +143,6 @@ async function saveGameResult(userId, gameType, betAmount, winAmount, result, ga
 module.exports = {
   getProfile,
   getGameHistory,
-  saveGameResult
+  saveGameResult,
+  getBalance
 };

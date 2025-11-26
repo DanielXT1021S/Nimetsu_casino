@@ -64,7 +64,18 @@ exports.spinSlots = async (req, res) => {
       });
     }
 
-    let { betAmount } = req.body;
+    let { betAmount, bet } = req.body;
+    betAmount = betAmount || bet;
+    betAmount = parseFloat(betAmount);
+
+    if (!betAmount || betAmount <= 0 || isNaN(betAmount)) {
+      return res.status(400).json({
+        success: false,
+        ok: false,
+        message: 'Monto inválido',
+      });
+    }
+
     betAmount = parseInt(betAmount, 10);
 
     const game = gameFactory.createGame('slots');

@@ -34,6 +34,7 @@ class GameFactory {
     GameFactory.instance = this;
   }
 
+
   createGame(gameId) {
     if (!this.gameConstructors.hasOwnProperty(gameId)) {
       throw new Error(`Juego no encontrado: ${gameId}`);
@@ -47,6 +48,7 @@ class GameFactory {
     return this.gameInstances[gameId];
   }
 
+
   getAllGameInstances() {
     const allGames = {};
     for (const gameId in this.gameConstructors) {
@@ -55,12 +57,14 @@ class GameFactory {
     return allGames;
   }
 
+
   getAllGames() {
     return Object.keys(this.gameConstructors).map(gameId => {
       const game = this.createGame(gameId);
       return game.getInfo();
     });
   }
+
 
   getGamesByCategory(category) {
     return Object.keys(this.gameConstructors)
@@ -73,6 +77,7 @@ class GameFactory {
     return this.gameConstructors.hasOwnProperty(gameId);
   }
 
+
   getBetLimits(gameId) {
     if (!this.gameExists(gameId)) {
       throw new Error(`Juego no encontrado: ${gameId}`);
@@ -81,6 +86,7 @@ class GameFactory {
     return game.getBetLimits();
   }
 
+
   validateBet(gameId, betAmount) {
     if (!this.gameExists(gameId)) {
       return { valid: false, error: 'Juego no encontrado' };
@@ -88,6 +94,7 @@ class GameFactory {
     const game = this.createGame(gameId);
     return game.validateBet(betAmount);
   }
+
 
   getGameInfo(gameId) {
     if (!this.gameExists(gameId)) {
@@ -105,6 +112,7 @@ class GameFactory {
     this.gameConstructors[gameId] = GameClass;
     this.gameInstances[gameId] = null;
   }
+
 
   static getInstance() {
     if (!GameFactory.instance) {

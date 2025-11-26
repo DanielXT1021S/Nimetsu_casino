@@ -74,6 +74,97 @@ exports.addBet = (req, res) => {
   }
 };
 
+exports.bet = async (req, res) => {
+  try {
+    const { userId } = req.user;
+    let { betType, betAmount } = req.body;
+
+    betAmount = parseFloat(betAmount);
+
+    if (!betAmount || betAmount <= 0 || isNaN(betAmount)) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Monto inválido'
+      });
+    }
+
+    const game = gameFactory.createGame('roulette');
+    const betLimits = game.getBetLimits();
+
+    if (betAmount < betLimits.minBet || betAmount > betLimits.maxBet) {
+      return res.status(400).json({
+        ok: false,
+        message: `Apuesta debe estar entre ${betLimits.minBet} y ${betLimits.maxBet}`
+      });
+    }
+
+    const validBetTypes = ['red', 'black', 'odd', 'even', 'low', 'high', 'dozen_1st', 'dozen_2nd', 'dozen_3rd'];
+    if (!validBetTypes.includes(betType)) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Tipo de apuesta inválido'
+      });
+    }
+
+    const canBet = await balanceService.canBet(userId, betAmount);
+    if (!canBet) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Saldo insuficiente'
+      });
+    }
+
+    await balanceService.updateBalance(userId, -betAmount);
+
+    const wheelNumber = Math.floor(Math.random() * 37);
+    const redNumbers = game.getRedNumbers();
+    const color = wheelNumber === 0 ? 'green' : (redNumbers.includes(wheelNumber) ? 'red' : 'black');
+
+    let isWin = false;
+    if (betType === 'red') isWin = color === 'red';
+    else if (betType === 'black') isWin = color === 'black';
+    else if (betType === 'odd') isWin = wheelNumber !== 0 && wheelNumber % 2 === 1;
+    else if (betType === 'even') isWin = wheelNumber !== 0 && wheelNumber % 2 === 0;
+    else if (betType === 'low') isWin = wheelNumber >= 1 && wheelNumber <= 18;
+    else if (betType === 'high') isWin = wheelNumber >= 19 && wheelNumber <= 36;
+    else if (betType === 'dozen_1st') isWin = wheelNumber >= 1 && wheelNumber <= 12;
+    else if (betType === 'dozen_2nd') isWin = wheelNumber >= 13 && wheelNumber <= 24;
+    else if (betType === 'dozen_3rd') isWin = wheelNumber >= 25 && wheelNumber <= 36;
+
+    let winAmount = 0;
+    if (isWin) {
+      const payout = betType.startsWith('dozen') ? 2 : 1;
+      winAmount = betAmount * (1 + payout);
+      await balanceService.updateBalance(userId, winAmount);
+    }
+
+    const newBalance = await balanceService.getBalance(userId);
+
+    await saveGameResult(
+      userId,
+      'roulette',
+      betAmount,
+      winAmount,
+      isWin ? 'win' : 'loss',
+      { wheelNumber, color, betType }
+    );
+
+    return res.json({
+      ok: true,
+      winningNumber: wheelNumber,
+      color,
+      result: isWin ? 'win' : 'loss',
+      winAmount,
+      newBalance
+    });
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al procesar apuesta'
+    });
+  }
+};
+
 exports.spin = async (req, res) => {
   let connection;
   

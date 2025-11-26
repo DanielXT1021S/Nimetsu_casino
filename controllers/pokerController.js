@@ -355,9 +355,58 @@ function compareHighCards(hand1, hand2) {
   return 0;
 }
 
+async function joinTable(req, res) {
+  try {
+    const { userId } = req.user;
+    let { buyIn } = req.body;
+
+    buyIn = parseFloat(buyIn);
+
+    if (!buyIn || buyIn <= 0 || isNaN(buyIn)) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Buy-in inválido'
+      });
+    }
+
+    const game = gameFactory.createGame('poker');
+    const betLimits = game.getBetLimits();
+
+    if (buyIn < betLimits.minBet || buyIn > betLimits.maxBet) {
+      return res.status(400).json({
+        ok: false,
+        message: `Buy-in debe estar entre ${betLimits.minBet} y ${betLimits.maxBet}`
+      });
+    }
+
+    const canBet = await balanceService.canBet(userId, buyIn);
+    if (!canBet) {
+      return res.status(400).json({
+        ok: false,
+        message: 'Saldo insuficiente'
+      });
+    }
+
+    const tableId = `table_${Date.now()}_${userId}`;
+
+    return res.json({
+      ok: true,
+      tableId,
+      chips: buyIn,
+      message: 'Te uniste a la mesa de poker'
+    });
+  } catch (err) {
+    return res.status(500).json({
+      ok: false,
+      message: 'Error al unirse a la mesa'
+    });
+  }
+}
+
 module.exports = {
   initGame,
   placeAnte,
   playHand,
   foldHand,
+  joinTable,
 };

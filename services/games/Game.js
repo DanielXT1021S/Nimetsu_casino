@@ -16,7 +16,7 @@ class Game {
     this.description = config.description;
     this.minBet = config.minBet;
     this.maxBet = config.maxBet;
-    this.rtp = config.rtp; // Return to Player
+    this.rtp = config.rtp; 
     this.category = config.category;
     this.features = config.features || [];
     this.rules = config.rules || [];
